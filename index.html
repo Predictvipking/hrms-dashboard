@@ -3,78 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise HRMS (RBAC)</title>
+    <title>Enterprise HRMS Pro</title>
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f8fafc; --white: #fff; --text: #334155; }
+        :root { --primary: #1e3a8a; --accent: #2563eb; --bg: #f1f5f9; --text: #334155; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: var(--text); }
         .hidden { display: none !important; }
         
         /* Components */
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; background: var(--accent); color: white; font-weight: 600; }
-        .btn:hover { background: #1d4ed8; } .btn-danger { background: #ef4444; } .btn-sm { padding: 5px 10px; font-size: 0.85rem; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; background: var(--accent); color: white; font-weight: 600; font-size: 0.9rem; }
+        .btn:hover { background: #1d4ed8; } .btn-danger { background: #dc2626; } 
         .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; margin-top: 5px; box-sizing: border-box; }
         
-        /* Auth & Layout */
-        .auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .auth-box { width: 400px; text-align: center; }
+        /* Layout Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        
+        /* Inputs with Labels */
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #64748b; }
+        input, select { padding: 9px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 0.95rem; }
+        input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+        
+        /* Sidebar & Layout */
         .dashboard { display: flex; height: 100vh; }
-        .sidebar { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; }
-        .brand { padding: 20px; font-size: 1.3rem; font-weight: bold; border-bottom: 1px solid #334155; }
+        .sidebar { width: 250px; background: #0f172a; color: white; display: flex; flex-direction: column; }
+        .brand { padding: 20px; font-size: 1.4rem; font-weight: bold; border-bottom: 1px solid #334155; text-align: center; }
+        .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); }
         
-        .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; display: flex; align-items: center; justify-content: space-between; }
-        .nav-item:hover { background: rgba(255,255,255,0.1); }
-        .nav-item.active { background: rgba(255,255,255,0.15); border-left: 4px solid var(--accent); }
-        .nav-item.disabled { opacity: 0.5; cursor: not-allowed; } /* Visual cue for no permission */
-        
-        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         /* Loader */
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction: column; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Tables */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 8px; overflow: hidden; }
-        th { background: #e2e8f0; padding: 12px; text-align: left; }
+        th { background: #e2e8f0; padding: 12px; text-align: left; font-weight: 600; }
         td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Section Header */
+        .sec-head { font-size: 1rem; font-weight: bold; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin: 15px 0 10px 0; }
     </style>
 </head>
 <body>
 
-    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Connecting to Cloud...</p></div>
+    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Connecting...</p></div>
 
-    <!-- 1. SETUP (Only for First Time) -->
-    <div id="view-setup" class="auth-container hidden">
-        <div class="card auth-box">
-            <h2 style="color:var(--primary)">Initial Setup</h2>
-            <p>Create Super Admin Account</p>
+    <!-- 1. SETUP -->
+    <div id="view-setup" class="hidden" style="display:flex; justify-content:center; align-items:center; height:100vh;">
+        <div class="card" style="width:400px; text-align:center;">
+            <h2 style="color:var(--primary)">System Setup</h2>
             <form id="setupForm">
-                <input id="setupOrg" placeholder="Organization Name" required>
-                <input id="setupAddr" placeholder="Address" required>
-                <input type="email" id="setupEmail" placeholder="Admin Email" required>
-                <input type="password" id="setupPass" placeholder="Create Password" required>
-                <button class="btn" style="width:100%; margin-top:15px">Initialize System</button>
+                <div class="input-group"><label>Organization Name</label><input id="setupOrg" required></div>
+                <div class="input-group"><label>Address</label><input id="setupAddr" required></div>
+                <div class="input-group"><label>Admin Email</label><input type="email" id="setupEmail" required></div>
+                <div class="input-group"><label>Password</label><input type="password" id="setupPass" required></div>
+                <button class="btn" style="width:100%; margin-top:15px">Initialize</button>
             </form>
         </div>
     </div>
 
     <!-- 2. LOGIN -->
-    <div id="view-login" class="auth-container hidden">
-        <div class="card auth-box">
-            <h2 style="color:var(--primary)" id="loginOrgName">HRMS Login</h2>
+    <div id="view-login" class="hidden" style="display:flex; justify-content:center; align-items:center; height:100vh;">
+        <div class="card" style="width:350px; text-align:center;">
+            <h2 id="loginOrgName">Login</h2>
             <form id="loginForm">
-                <input type="email" id="loginEmail" placeholder="Email ID" required>
-                <input type="password" id="loginPass" placeholder="Password" required>
-                <button class="btn" style="width:100%; margin-top:15px">Sign In</button>
+                <div class="input-group"><label>Email</label><input type="email" id="loginEmail" required></div>
+                <div class="input-group"><label>Password</label><input type="password" id="loginPass" required></div>
+                <button class="btn" style="width:100%; margin-top:15px">Login</button>
             </form>
         </div>
     </div>
@@ -82,80 +86,61 @@
     <!-- 3. DASHBOARD -->
     <div id="view-dashboard" class="dashboard hidden">
         <div class="sidebar">
-            <div class="brand">Admin Console</div>
-            
-            <!-- Navigation Items (IDs are important for Permissions) -->
-            <div class="nav-item active" id="nav-home" onclick="navTo('tab-home', 'view_dashboard')">
-                <span>📊 Dashboard</span>
-            </div>
-            <div class="nav-item" id="nav-users" onclick="navTo('tab-users', 'manage_users')">
-                <span>🔐 Admin Console</span> <span style="font-size:0.7rem">SUPER ONLY</span>
-            </div>
-            <div class="nav-item" id="nav-depts" onclick="navTo('tab-depts', 'manage_dept')">
-                <span>🏢 Departments</span>
-            </div>
-            <div class="nav-item" id="nav-emp" onclick="navTo('tab-emp', 'manage_emp')">
-                <span>👥 Employees</span>
-            </div>
-            <div class="nav-item" id="nav-pay" onclick="navTo('tab-pay', 'generate_payslip')">
-                <span>🧾 Payslip</span>
-            </div>
-            
+            <div class="brand">HRMS Pro</div>
+            <div class="nav-item active" id="nav-home" onclick="navTo('tab-home')">📊 Dashboard</div>
+            <div class="nav-item" id="nav-users" onclick="navTo('tab-users')">🔐 Admin Console</div>
+            <div class="nav-item" id="nav-depts" onclick="navTo('tab-depts')">🏢 Departments</div>
+            <div class="nav-item" id="nav-emp" onclick="navTo('tab-emp')">👥 Employees</div>
+            <div class="nav-item" id="nav-pay" onclick="navTo('tab-pay')">🧾 Payslip Generator</div>
             <div style="flex:1"></div>
-            <div class="nav-item" onclick="location.reload()" style="background: #ef4444;">🚪 Logout</div>
+            <div class="nav-item" onclick="location.reload()" style="background:#dc2626;">🚪 Logout</div>
         </div>
 
         <div class="content">
             <div class="header">
-                <h2 id="pageTitle">Overview</h2>
-                <div>
-                    <span id="userDisplay" style="font-weight:bold; color:var(--accent)">User</span>
-                    <span id="roleDisplay" style="background:#e2e8f0; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-left:5px">Role</span>
+                <h2 id="pageTitle">Dashboard</h2>
+                <div style="text-align:right">
+                    <span id="userDisplay" style="font-weight:bold; color:var(--primary)">User</span><br>
+                    <span id="roleDisplay" style="font-size:0.8rem; background:#cbd5e1; padding:2px 6px; border-radius:4px;">Role</span>
                 </div>
             </div>
 
             <!-- HOME -->
             <div id="tab-home">
                 <div class="grid-3">
-                    <div class="card"><h3>Total Employees</h3><h1 id="statEmp">0</h1></div>
+                    <div class="card"><h3>Staff Count</h3><h1 id="statEmp" style="color:var(--accent)">0</h1></div>
                     <div class="card"><h3>Departments</h3><h1 id="statDept">0</h1></div>
-                    <div class="card"><h3>System Status</h3><p style="color:green">Active & Connected</p></div>
                 </div>
             </div>
 
-            <!-- ADMIN CONSOLE (USER MANAGEMENT) -->
+            <!-- ADMIN CONSOLE -->
             <div id="tab-users" class="hidden">
                 <div class="grid-2">
                     <div class="card">
-                        <h3>Create System User</h3>
+                        <h3>Create User</h3>
                         <form id="userForm">
-                            <input id="newUserName" placeholder="Full Name" required>
-                            <input type="email" id="newUserEmail" placeholder="Email" required>
-                            <input type="password" id="newUserPass" placeholder="Password" required>
-                            <select id="newUserRole">
-                                <option value="HR">HR Manager</option>
-                                <option value="MANAGER">Dept Manager</option>
-                                <option value="ACCOUNTANT">Accountant</option>
-                            </select>
-                            
-                            <p style="margin-top:15px; font-weight:bold; font-size:0.9rem">Permissions:</p>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.9rem">
-                                <div><input type="checkbox" id="perm_dash" checked> View Dashboard</div>
-                                <div><input type="checkbox" id="perm_dept"> Manage Depts</div>
-                                <div><input type="checkbox" id="perm_emp"> Manage Staff</div>
-                                <div><input type="checkbox" id="perm_pay"> Generate Payslip</div>
-                                <!-- Only Super Admin can manage users, not selectable -->
+                            <div class="input-group"><label>Name</label><input id="newUserName" required></div>
+                            <div class="input-group"><label>Email</label><input type="email" id="newUserEmail" required></div>
+                            <div class="input-group"><label>Password</label><input type="password" id="newUserPass" required></div>
+                            <div class="input-group"><label>Role</label>
+                                <select id="newUserRole">
+                                    <option value="HR">HR</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="ACCOUNTANT">Accountant</option>
+                                </select>
                             </div>
-
-                            <button class="btn" style="width:100%; margin-top:15px">Create User</button>
+                            <p><b>Permissions:</b></p>
+                            <div class="grid-2">
+                                <label><input type="checkbox" id="perm_dept"> Manage Dept</label>
+                                <label><input type="checkbox" id="perm_emp"> Manage Staff</label>
+                                <label><input type="checkbox" id="perm_pay"> Generate Payslip</label>
+                            </div>
+                            <button class="btn" style="width:100%; margin-top:10px">Add User</button>
                         </form>
                     </div>
                     <div class="card">
-                        <h3>System Users</h3>
-                        <table id="userTable">
-                            <thead><tr><th>Name</th><th>Role</th><th>Action</th></tr></thead>
-                            <tbody id="userTableBody"></tbody>
-                        </table>
+                        <h3>Users List</h3>
+                        <table id="userTable"><thead><tr><th>Name</th><th>Role</th><th>Action</th></tr></thead><tbody id="userTableBody"></tbody></table>
                     </div>
                 </div>
             </div>
@@ -165,9 +150,9 @@
                 <div class="grid-2">
                     <div class="card">
                         <form id="deptForm">
-                            <input id="newEntity" placeholder="Entity Name" required>
-                            <input id="newDept" placeholder="Dept Name" required>
-                            <button class="btn" style="margin-top:10px">Add Dept</button>
+                            <div class="input-group"><label>Entity (e.g. NIDS)</label><input id="newEntity" required></div>
+                            <div class="input-group"><label>Dept Name</label><input id="newDept" required></div>
+                            <button class="btn" style="margin-top:10px">Add</button>
                         </form>
                     </div>
                     <div class="card">
@@ -178,334 +163,330 @@
 
             <!-- EMPLOYEES -->
             <div id="tab-emp" class="hidden">
-                <div style="margin-bottom:15px"><button class="btn" onclick="toggleModal('modal-emp')">+ Add Employee</button></div>
-                <div class="card">
-                    <table id="empTable"><thead><tr><th>Code</th><th>Name</th><th>Dept</th><th>Action</th></tr></thead><tbody id="empTableBody"></tbody></table>
+                <button class="btn" onclick="toggleModal('modal-emp')">+ Add Employee</button>
+                <div class="card" style="margin-top:15px">
+                    <table id="empTable"><thead><tr><th>Code</th><th>Name</th><th>Entity/Dept</th><th>Action</th></tr></thead><tbody id="empTableBody"></tbody></table>
                 </div>
             </div>
 
-            <!-- PAYSLIP -->
+            <!-- PAYSLIP GENERATOR -->
             <div id="tab-pay" class="hidden">
-                <div class="card" style="max-width:800px">
-                    <select id="psEmpSelect" onchange="autoFetchEmp()"><option>Select Employee</option></select>
-                    <p id="psInfo" style="color:var(--accent); font-weight:bold; margin:10px 0"></p>
-                    <div class="grid-3">
-                        <select id="psMonth"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select>
-                        <select id="psYear"></select>
-                        <input type="number" id="psDays" value="30" placeholder="Total Days">
-                    </div>
+                <div class="card" style="max-width:900px; margin:0 auto;">
+                    <div class="sec-head">1. Select Employee</div>
                     <div class="grid-2">
-                         <input type="number" id="psDedFood" placeholder="Food Deduction">
-                         <input type="number" id="psDedAdv" placeholder="Advance Deduction">
+                        <div class="input-group">
+                            <label>Employee</label>
+                            <select id="psEmpSelect" onchange="autoFetchEmp()"><option>-- Select --</option></select>
+                        </div>
+                        <div class="input-group"><label>Selected:</label><input id="psDisplayInfo" readonly style="background:#f1f5f9; font-weight:bold"></div>
                     </div>
-                    <input type="hidden" id="fixBasic"><input type="hidden" id="fixDA"><input type="hidden" id="fixHRA"><input type="hidden" id="fixOther"><input type="hidden" id="fixPF">
-                    <button class="btn" style="width:100%; margin-top:20px" onclick="generatePDF()">Generate Payslip</button>
+
+                    <div class="sec-head">2. Period</div>
+                    <div class="grid-3">
+                        <div class="input-group"><label>Month</label><select id="psMonth"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div>
+                        <div class="input-group"><label>Year</label><select id="psYear"></select></div>
+                        <div class="input-group"><label>Total Days</label><input type="number" id="psTotalDays" value="30"></div>
+                    </div>
+
+                    <div class="sec-head">3. Attendance & Leaves (For Payslip)</div>
+                    <div class="grid-4">
+                        <div class="input-group"><label>Casual Leave (CL)</label><input type="number" id="psCL" value="0"></div>
+                        <div class="input-group"><label>Sick Leave (SL)</label><input type="number" id="psSL" value="0"></div>
+                        <div class="input-group"><label>Annual Leave (AL)</label><input type="number" id="psAL" value="0"></div>
+                        <div class="input-group"><label>Absent Days</label><input type="number" id="psAbsent" value="0"></div>
+                        <div class="input-group"><label>Present Days</label><input type="number" id="psPresent" value="30"></div>
+                        <div class="input-group"><label>Pay Days</label><input type="number" id="psPayDays" value="30"></div>
+                    </div>
+
+                    <div class="sec-head">4. Variable Deductions (Monthly)</div>
+                    <div class="grid-4">
+                        <div class="input-group"><label>Food</label><input type="number" id="psDedFood" value="0"></div>
+                        <div class="input-group"><label>MUT</label><input type="number" id="psDedMUT" value="0"></div>
+                        <div class="input-group"><label>Income Tax</label><input type="number" id="psDedTax" value="0"></div>
+                        <div class="input-group"><label>Retiree Welfare</label><input type="number" id="psDedWelfare" value="0"></div>
+                        <div class="input-group"><label>Medical Exp</label><input type="number" id="psDedMed" value="0"></div>
+                        <div class="input-group"><label>Adv/Loan/TDS</label><input type="number" id="psDedAdv" value="0"></div>
+                        <div class="input-group"><label>Loss Of Pay</label><input type="number" id="psDedLOP" value="0"></div>
+                    </div>
+                    
+                    <!-- Hidden Fixed Salary (Fetched from Profile) -->
+                    <input type="hidden" id="fixBasic"><input type="hidden" id="fixDA">
+                    <input type="hidden" id="fixTA"><input type="hidden" id="fixHRA">
+                    <input type="hidden" id="fixOther"><input type="hidden" id="fixEPF">
+                    <input type="hidden" id="fixESI">
+
+                    <button class="btn" style="width:100%; margin-top:25px; padding:12px; font-size:1.1rem" onclick="generatePDF()">Generate Payslip (PDF)</button>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Modal for Employee -->
-    <div id="modal-emp" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center">
-        <div class="card" style="width:700px; max-height:90vh; overflow-y:auto">
-            <h3>Add Employee <button onclick="toggleModal('modal-emp')" style="float:right; border:none; background:none; font-size:1.2rem; cursor:pointer">X</button></h3>
+    <!-- MODAL: ADD EMPLOYEE (Fixed UI) -->
+    <div id="modal-emp" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:9999;">
+        <div class="card" style="width:800px; max-height:95vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                <h3>Add Employee</h3>
+                <button onclick="toggleModal('modal-emp')" style="background:none; border:none; font-size:1.5rem; cursor:pointer">&times;</button>
+            </div>
             <form id="empForm">
+                <div class="sec-head">Personal Details</div>
                 <div class="grid-2">
-                    <input id="empName" placeholder="Name" required>
-                    <select id="empDeptSelect" required></select>
-                    <input id="empDesg" placeholder="Designation" required>
-                    <input type="date" id="empDOJ" required>
-                    <input id="empAadhaar" placeholder="Aadhaar">
-                    <input id="empPAN" placeholder="PAN">
-                    <input id="empBank" placeholder="Bank Name">
-                    <input id="empAC" placeholder="Account No">
-                    <input id="empIFSC" placeholder="IFSC">
-                    <input id="empESI" placeholder="ESI No">
+                    <div class="input-group"><label>Full Name</label><input id="empName" required></div>
+                    <div class="input-group"><label>Department</label><select id="empDeptSelect" required></select></div>
+                    <div class="input-group"><label>Designation</label><input id="empDesg" required></div>
+                    <div class="input-group"><label>Date of Joining</label><input type="date" id="empDOJ" required></div>
+                    <div class="input-group"><label>Aadhaar No</label><input id="empAadhaar"></div>
+                    <div class="input-group"><label>PAN No</label><input id="empPAN"></div>
                 </div>
-                <h4>Salary</h4>
-                <div class="grid-3">
-                    <input type="number" id="salBasic" placeholder="Basic" value="0">
-                    <input type="number" id="salDA" placeholder="DA" value="0">
-                    <input type="number" id="salHRA" placeholder="HRA" value="0">
-                    <input type="number" id="salOther" placeholder="Others" value="0">
-                    <input type="number" id="salPF" placeholder="PF" value="0">
+
+                <div class="sec-head">Bank & Statutory</div>
+                <div class="grid-2">
+                    <div class="input-group"><label>Bank Name</label><input id="empBank"></div>
+                    <div class="input-group"><label>Account No</label><input id="empAC"></div>
+                    <div class="input-group"><label>IFSC Code</label><input id="empIFSC"></div>
+                    <div class="input-group"><label>ESI Number</label><input id="empESI"></div>
+                    <div class="input-group"><label>UAN Number</label><input id="empUAN"></div>
                 </div>
-                <button class="btn" style="margin-top:20px; width:100%">Save Employee</button>
+
+                <div class="sec-head">Salary Structure (Monthly Fixed)</div>
+                <!-- FIXED UI: LABELED INPUTS -->
+                <div class="grid-4">
+                    <div class="input-group"><label>Basic (₹)</label><input type="number" id="salBasic" value="0"></div>
+                    <div class="input-group"><label>DA (₹)</label><input type="number" id="salDA" value="0"></div>
+                    <div class="input-group"><label>TA (₹)</label><input type="number" id="salTA" value="0"></div>
+                    <div class="input-group"><label>HRA (₹)</label><input type="number" id="salHRA" value="0"></div>
+                    <div class="input-group"><label>Others (₹)</label><input type="number" id="salOther" value="0"></div>
+                    <div class="input-group"><label>EPF Fixed (₹)</label><input type="number" id="salPF" value="0"></div>
+                    <div class="input-group"><label>ESI Fixed (₹)</label><input type="number" id="salESIFix" value="0"></div>
+                </div>
+
+                <div style="margin-top:20px; text-align:right">
+                    <button class="btn">Save Employee</button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        // -----------------------------------------------------------
-        // CONFIGURATION (YOUR NEW URL)
-        // -----------------------------------------------------------
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynR24i1LHj-fB_w51pdJ0OHGOQstq1xZbPBR4FkcVb1y5L7GXfAmKybQinrMK43Jin/exec";
+        // *** PASTE YOUR NEW APPS SCRIPT URL HERE ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1-jJ8y_jC470Lz33aV33a90_8j3e9b0_EXAMPLE_URL/exec"; 
         
-        // State
         let db = { depts: [], emps: [] };
-        let currentUser = null; // Stores {role, permissions}
+        let currentUser = null;
 
-        // --- CORE FUNCTIONS (FIXED FOR CORS) ---
+        // --- API ---
         async function callAPI(action, payload={}) {
             document.getElementById('loader').classList.remove('hidden');
             try {
-                // FIXED: Using text/plain ensures simple POST request, bypassing strict CORS preflight
-                const res = await fetch(SCRIPT_URL, { 
-                    method: "POST", 
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action, ...payload }) 
-                });
-                
+                const res = await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...payload }) });
                 const data = await res.json();
                 document.getElementById('loader').classList.add('hidden');
                 return data;
             } catch(e) { 
                 document.getElementById('loader').classList.add('hidden');
-                console.error(e);
-                // Usually means CORS block or Script Error
-                alert("Connection Failed! Please check if your Google Script is deployed as 'Anyone'."); 
-                return {status:'error'}; 
+                console.error(e); alert("Connection Error"); return {status:'error'}; 
             }
         }
 
         // --- INIT ---
         window.onload = async () => {
-            // Fill Years
             const ys = document.getElementById('psYear');
             for(let y=2020; y<=2060; y++) { let o=document.createElement('option'); o.value=y; o.innerText=y; if(y==new Date().getFullYear()) o.selected=true; ys.appendChild(o); }
 
-            // Check if System is Setup
             const res = await callAPI('GET_ALL_DATA');
             if(res.status === 'success') {
-                db.depts = res.data.departments || [];
-                db.emps = res.data.employees || [];
-                
-                if(!res.isSetup) {
-                    showView('view-setup');
-                } else {
-                    showView('view-login');
-                }
+                db.depts = res.data.departments; db.emps = res.data.employees;
+                if(!res.isSetup) showView('view-setup'); else showView('view-login');
             }
         };
 
-        // --- NAVIGATION & PERMISSIONS ---
-        function showView(id) {
-            document.querySelectorAll('.auth-container, .dashboard').forEach(e => e.classList.add('hidden'));
+        // --- NAVIGATION ---
+        function showView(id) { document.querySelectorAll('.hidden').forEach(e=>e.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        function navTo(id) {
+            document.querySelectorAll('.dashboard > .content > div').forEach(e=>e.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+            document.getElementById('nav-'+id.split('-')[1]).classList.add('active');
+            if(id=='tab-emp') renderEmps();
+            if(id=='tab-depts') renderDepts();
+            if(id=='tab-pay') fillEmpSelect();
         }
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); if(!document.getElementById(id).classList.contains('hidden')) fillDeptSelect(); }
 
-        function navTo(tabId, requiredPerm) {
-            // Permission Check
-            if(currentUser.role !== 'SUPER_ADMIN') {
-                if(!currentUser.permissions[requiredPerm]) {
-                    alert("⚠️ Access Denied: You do not have permission to access this module.");
-                    return; // Stop here, don't switch tab
-                }
-            }
-
-            // Switch Tab
-            document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-            
-            // Highlight sidebar
-            let navId = '';
-            if(tabId=='tab-home') navId='nav-home';
-            if(tabId=='tab-users') navId='nav-users';
-            if(tabId=='tab-depts') navId='nav-depts';
-            if(tabId=='tab-emp') navId='nav-emp';
-            if(tabId=='tab-pay') navId='nav-pay';
-            if(navId) document.getElementById(navId).classList.add('active');
-
-            // Refresh Data if needed
-            if(tabId === 'tab-users') loadSystemUsers();
-            if(tabId === 'tab-depts') renderDepts();
-            if(tabId === 'tab-emp') renderEmps();
-            if(tabId === 'tab-pay') fillEmpSelect();
-        }
-
-        function applyVisualPermissions() {
-            // Dims buttons if no access (but keeps them visible)
-            const map = {
-                'nav-users': 'manage_users',
-                'nav-depts': 'manage_dept',
-                'nav-emp': 'manage_emp',
-                'nav-pay': 'generate_payslip'
-            };
-
-            for(const [navId, perm] of Object.entries(map)) {
-                const el = document.getElementById(navId);
-                if(currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions[perm]) {
-                    el.classList.add('disabled'); // Make it look gray
-                    el.title = "Access Denied";
-                } else {
-                    el.classList.remove('disabled');
-                }
-            }
-        }
-
-        // --- SETUP ---
-        document.getElementById('setupForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('setupOrg').value,
-                address: document.getElementById('setupAddr').value,
-                email: document.getElementById('setupEmail').value,
-                password: document.getElementById('setupPass').value
-            };
-            const res = await callAPI('SETUP_ORG', payload);
-            if(res.status === 'success') location.reload();
-        };
-
-        // --- LOGIN ---
+        // --- SETUP & LOGIN ---
+        document.getElementById('setupForm').onsubmit = async (e) => { e.preventDefault(); await callAPI('SETUP_ORG', { name:document.getElementById('setupOrg').value, address:document.getElementById('setupAddr').value, email:document.getElementById('setupEmail').value, password:document.getElementById('setupPass').value }); location.reload(); };
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            
-            const res = await callAPI('LOGIN', { email: email, password: pass });
+            const res = await callAPI('LOGIN', { email:document.getElementById('loginEmail').value, password:document.getElementById('loginPass').value });
             if(res.status === 'success') {
                 currentUser = res.user;
                 document.getElementById('userDisplay').innerText = currentUser.name;
                 document.getElementById('roleDisplay').innerText = currentUser.role;
                 document.getElementById('pageTitle').innerText = res.orgName;
-                
-                showView('view-dashboard');
-                applyVisualPermissions();
-                
-                // Update stats
+                document.querySelectorAll('.auth-container').forEach(e=>e.classList.add('hidden'));
+                document.querySelector('.dashboard').classList.remove('hidden');
                 document.getElementById('statEmp').innerText = db.emps.length;
                 document.getElementById('statDept').innerText = db.depts.length;
-            } else {
-                alert(res.msg);
-            }
+            } else alert(res.msg);
         };
-
-        // --- ADMIN CONSOLE (USER MGMT) ---
-        document.getElementById('userForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('newUserName').value,
-                email: document.getElementById('newUserEmail').value,
-                password: document.getElementById('newUserPass').value,
-                role: document.getElementById('newUserRole').value,
-                permissions: {
-                    view_dashboard: document.getElementById('perm_dash').checked,
-                    manage_dept: document.getElementById('perm_dept').checked,
-                    manage_emp: document.getElementById('perm_emp').checked,
-                    generate_payslip: document.getElementById('perm_pay').checked,
-                    manage_users: false // Only Super Admin
-                }
-            };
-            await callAPI('ADD_SYS_USER', payload);
-            alert("User Created!");
-            loadSystemUsers();
-            e.target.reset();
-        };
-
-        async function loadSystemUsers() {
-            const res = await callAPI('GET_SYS_USERS');
-            const tb = document.getElementById('userTableBody'); tb.innerHTML = '';
-            res.users.forEach(u => {
-                tb.innerHTML += `<tr><td>${u.name}<br><small>${u.email}</small></td><td>${u.role}</td>
-                <td>${u.role !== 'SUPER_ADMIN' ? `<button class="btn btn-danger btn-sm" onclick="delUser('${u.email}')">X</button>` : '-'}</td></tr>`;
-            });
-        }
-        async function delUser(email) {
-            if(confirm("Delete this user?")) {
-                await callAPI('DEL_SYS_USER', {email});
-                loadSystemUsers();
-            }
-        }
 
         // --- DEPARTMENTS ---
-        document.getElementById('deptForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const p = { id:Date.now(), entity:document.getElementById('newEntity').value, name:document.getElementById('newDept').value };
-            await callAPI('ADD_DEPT', p);
-            db.depts.push(p); renderDepts(); e.target.reset();
-        };
-        function renderDepts() {
-            const tb = document.getElementById('deptTableBody'); tb.innerHTML='';
-            db.depts.forEach(d => tb.innerHTML += `<tr><td>${d.entity}</td><td>${d.name}</td><td><button class="btn btn-danger btn-sm" onclick="delDept(${d.id})">X</button></td></tr>`);
-        }
-        async function delDept(id) { if(confirm('Delete?')) { await callAPI('DEL_DEPT', {id}); db.depts=db.depts.filter(d=>d.id!==id); renderDepts(); } }
+        document.getElementById('deptForm').onsubmit = async (e) => { e.preventDefault(); const p={id:Date.now(), entity:document.getElementById('newEntity').value, name:document.getElementById('newDept').value}; await callAPI('ADD_DEPT', p); db.depts.push(p); renderDepts(); e.target.reset(); };
+        function renderDepts() { const tb=document.getElementById('deptTableBody'); tb.innerHTML=''; db.depts.forEach(d=>tb.innerHTML+=`<tr><td>${d.entity}</td><td>${d.name}</td><td><button class="btn btn-danger" onclick="delDept(${d.id})">X</button></td></tr>`); }
+        async function delDept(id) { if(confirm('Delete?')) { await callAPI('DEL_DEPT', {id}); db.depts=db.depts.filter(d=>d.id!=id); renderDepts(); } }
 
         // --- EMPLOYEES ---
-        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); fillDeptSelect(); }
-        function fillDeptSelect() {
-            const s = document.getElementById('empDeptSelect'); s.innerHTML='';
-            db.depts.forEach(d => s.innerHTML += `<option value="${d.id}">${d.entity} - ${d.name}</option>`);
-        }
+        function fillDeptSelect() { const s=document.getElementById('empDeptSelect'); s.innerHTML=''; db.depts.forEach(d=>s.innerHTML+=`<option value="${d.id}">${d.entity} - ${d.name}</option>`); }
         document.getElementById('empForm').onsubmit = async (e) => {
             e.preventDefault();
             const emp = {
                 id:Date.now(), deptId:document.getElementById('empDeptSelect').value, code:'EMP'+Math.floor(Math.random()*9000),
-                personal: { name:document.getElementById('empName').value, desg:document.getElementById('empDesg').value, doj:document.getElementById('empDOJ').value, status:'Active', aadhaar:document.getElementById('empAadhaar').value, pan:document.getElementById('empPAN').value, uan:'' },
-                bank: { name:document.getElementById('empBank').value, ac:document.getElementById('empAC').value, ifsc:document.getElementById('empIFSC').value, esi:document.getElementById('empESI').value, mut:'' },
-                salary: { basic:document.getElementById('salBasic').value, da:document.getElementById('salDA').value, hra:document.getElementById('salHRA').value, ta:0, other:document.getElementById('salOther').value, epf:document.getElementById('salPF').value }
+                personal: { name:document.getElementById('empName').value, desg:document.getElementById('empDesg').value, doj:document.getElementById('empDOJ').value, status:'Active', aadhaar:document.getElementById('empAadhaar').value, pan:document.getElementById('empPAN').value, uan:document.getElementById('empUAN').value },
+                bank: { name:document.getElementById('empBank').value, ac:document.getElementById('empAC').value, ifsc:document.getElementById('empIFSC').value, esi:document.getElementById('empESI').value },
+                salary: { 
+                    basic:document.getElementById('salBasic').value, da:document.getElementById('salDA').value, ta:document.getElementById('salTA').value, hra:document.getElementById('salHRA').value, other:document.getElementById('salOther').value, 
+                    epf:document.getElementById('salPF').value, esi_fixed:document.getElementById('salESIFix').value 
+                }
             };
             await callAPI('ADD_EMP', emp); db.emps.push(emp); toggleModal('modal-emp'); renderEmps();
         };
-        function renderEmps() {
-            const tb = document.getElementById('empTableBody'); tb.innerHTML='';
-            db.emps.forEach(e => {
-                const d = db.depts.find(dp=>dp.id==e.deptId)||{name:'-'};
-                tb.innerHTML += `<tr><td>${e.code}</td><td>${e.personal.name}</td><td>${d.name}</td><td><button class="btn btn-danger btn-sm" onclick="delEmp(${e.id})">X</button></td></tr>`;
-            });
-        }
-        async function delEmp(id) { if(confirm('Delete?')) { await callAPI('DEL_EMP', {id}); db.emps=db.emps.filter(e=>e.id!==id); renderEmps(); } }
+        function renderEmps() { const tb=document.getElementById('empTableBody'); tb.innerHTML=''; db.emps.forEach(e=>{ const d=db.depts.find(x=>x.id==e.deptId)||{entity:'-',name:'-'}; tb.innerHTML+=`<tr><td>${e.code}</td><td>${e.personal.name}</td><td>${d.entity}/${d.name}</td><td><button class="btn btn-danger" onclick="delEmp(${e.id})">X</button></td></tr>`; }); }
+        async function delEmp(id) { if(confirm('Delete?')) { await callAPI('DEL_EMP', {id}); db.emps=db.emps.filter(e=>e.id!=id); renderEmps(); } }
 
         // --- PAYSLIP ---
-        function fillEmpSelect() {
-            const s = document.getElementById('psEmpSelect'); s.innerHTML='<option>Select Employee</option>';
-            db.emps.forEach(e => s.innerHTML+=`<option value="${e.id}">${e.personal.name}</option>`);
-        }
+        function fillEmpSelect() { const s=document.getElementById('psEmpSelect'); s.innerHTML='<option>-- Select --</option>'; db.emps.forEach(e=>s.innerHTML+=`<option value="${e.id}">${e.personal.name}</option>`); }
         function autoFetchEmp() {
             const id = document.getElementById('psEmpSelect').value;
             const emp = db.emps.find(e=>e.id==id);
             if(emp) {
-                document.getElementById('psInfo').innerText = `Selected: ${emp.personal.name} (${emp.personal.desg})`;
+                const d = db.depts.find(x=>x.id==emp.deptId);
+                document.getElementById('psDisplayInfo').value = `${emp.personal.name} | ${emp.personal.desg} | ${d.entity}`;
+                // Fill Hidden
                 document.getElementById('fixBasic').value = emp.salary.basic;
                 document.getElementById('fixDA').value = emp.salary.da;
+                document.getElementById('fixTA').value = emp.salary.ta;
                 document.getElementById('fixHRA').value = emp.salary.hra;
                 document.getElementById('fixOther').value = emp.salary.other;
-                document.getElementById('fixPF').value = emp.salary.epf;
+                document.getElementById('fixEPF').value = emp.salary.epf;
+                document.getElementById('fixESI').value = emp.salary.esi_fixed;
             }
         }
+
         async function generatePDF() {
             const id = document.getElementById('psEmpSelect').value;
-            if(!id) return alert('Select Employee');
-            // Basic Calc for PDF demo
+            if(!id || id.includes('Select')) return alert('Select Employee');
+            
             const emp = db.emps.find(e=>e.id==id);
             const dept = db.depts.find(d=>d.id==emp.deptId);
-            const net = (parseFloat(emp.salary.basic)+parseFloat(emp.salary.da)) - parseFloat(emp.salary.epf); // Simple logic
+            const month = document.getElementById('psMonth').value;
+            const year = document.getElementById('psYear').value;
+
+            // 1. Gather Figures
+            const basic = parseFloat(document.getElementById('fixBasic').value)||0;
+            const da = parseFloat(document.getElementById('fixDA').value)||0;
+            const ta = parseFloat(document.getElementById('fixTA').value)||0;
+            const hra = parseFloat(document.getElementById('fixHRA').value)||0;
+            const other = parseFloat(document.getElementById('fixOther').value)||0;
+            const gross = basic + da + ta + hra + other;
+
+            // Deductions
+            const epf = parseFloat(document.getElementById('fixEPF').value)||0;
+            const mut = parseFloat(document.getElementById('psDedMUT').value)||0;
+            const food = parseFloat(document.getElementById('psDedFood').value)||0;
+            const tax = parseFloat(document.getElementById('psDedTax').value)||0;
+            const med = parseFloat(document.getElementById('psDedMed').value)||0;
+            const esi = parseFloat(document.getElementById('fixESI').value)||0; // Fixed from profile, or manual input could be added
+            const welfare = parseFloat(document.getElementById('psDedWelfare').value)||0;
+            const adv = parseFloat(document.getElementById('psDedAdv').value)||0;
+            const lop = parseFloat(document.getElementById('psDedLOP').value)||0;
             
+            const totalDed = epf + mut + food + tax + med + esi + welfare + adv + lop;
+            const netPay = gross - totalDed;
+
+            // 2. PDF GENERATION (Mirroring Image 2)
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
-            // Header
-            doc.setFontSize(18); doc.setFont("helvetica", "bold");
+
+            // Header (Letterhead style)
+            doc.setFontSize(20); doc.setFont("helvetica", "bold");
             doc.text(dept.entity.toUpperCase(), 105, 15, null, null, "center");
             doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.line(10, 25, 200, 25);
-            doc.text("PAYSLIP", 105, 35, null, null, "center");
+            doc.text("Organization Address Line Here", 105, 20, null, null, "center");
+            doc.line(10, 24, 200, 24);
+
+            doc.setFontSize(12); doc.setFont("helvetica", "bold");
+            doc.text(`Payslip for ${month} ${year}`, 105, 32, null, null, "center");
+
+            // Leave Summary & Attendance (Top Section)
+            doc.setFontSize(10); doc.setFont("helvetica", "bold italic");
+            doc.text("Leave Summary and Attendance Record:", 14, 42);
+            
+            const cl = document.getElementById('psCL').value;
+            const sl = document.getElementById('psSL').value;
+            const al = document.getElementById('psAL').value;
+            const pres = document.getElementById('psPresent').value;
+            const abs = document.getElementById('psAbsent').value;
+            const paydays = document.getElementById('psPayDays').value;
 
             doc.autoTable({
-                startY: 40,
+                startY: 45,
+                theme: 'plain',
+                styles: { fontSize: 9, cellPadding: 1 },
+                columnStyles: { 0: { fontStyle: 'bold', width: 35 }, 2: { fontStyle: 'bold', width: 35 } },
                 body: [
-                    ['Name', emp.personal.name, 'Designation', emp.personal.desg],
-                    ['Department', dept.name, 'Net Pay', net.toFixed(2)]
+                    ['Casual Leave:', cl, 'Present Days:', pres],
+                    ['Sick Leave:', sl, 'Absent:', abs],
+                    ['Annual Leave:', al, 'No.of Pay Days:', paydays]
                 ]
             });
-            
-            doc.save(`Payslip_${emp.personal.name}.pdf`);
-            
-            await callAPI('SAVE_PAYSLIP', {month:document.getElementById('psMonth').value, year:document.getElementById('psYear').value, empName:emp.personal.name, empCode:emp.code, department:dept.name, entity:dept.entity, netPay:net});
-            alert('Payslip Saved');
-        }
 
+            // MAIN TABLE (Earnings vs Deductions)
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 5,
+                head: [['Earnings', 'Amount', 'Deductions', 'Amount']],
+                body: [
+                    ['Basic', basic.toFixed(2), 'EPF', epf.toFixed(2)],
+                    ['DA', da.toFixed(2), 'MUT', mut.toFixed(2)],
+                    ['TA', ta.toFixed(2), 'Food', food.toFixed(2)],
+                    ['HRA', hra.toFixed(2), 'Income Tax', tax.toFixed(2)],
+                    ['Other Allowances', other.toFixed(2), 'MED', med.toFixed(2)],
+                    ['', '', 'ESI', esi.toFixed(2)],
+                    ['', '', 'Retiree Welfare Fund', welfare.toFixed(2)],
+                    ['', '', 'Advances/Loans/TDS', adv.toFixed(2)],
+                    ['', '', 'Medical Exp/Other', '0.00'],
+                    ['', '', 'Loss of Pay', lop.toFixed(2)],
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bold', lineWidth: 0.1, lineColor: 0 },
+                styles: { fontSize: 9, lineColor: 0, lineWidth: 0.1, cellPadding: 1.5 },
+                columnStyles: { 0: { fontStyle: 'bold' }, 2: { fontStyle: 'bold' } }
+            });
+
+            // Totals Row
+            let finalY = doc.lastAutoTable.finalY;
+            doc.setLineWidth(0.1);
+            doc.rect(14, finalY, 182, 8); // Box around totals
+            doc.setFont("helvetica", "bold");
+            doc.text("Gross Earnings", 16, finalY + 5.5);
+            doc.text(gross.toFixed(2) + '/-', 65, finalY + 5.5);
+            
+            // Vertical line split
+            doc.line(105, finalY, 105, finalY + 8); 
+            
+            doc.text("Total Deductions", 107, finalY + 5.5);
+            doc.text(totalDed.toFixed(2) + '/-', 160, finalY + 5.5);
+
+            // NET PAY
+            doc.setFontSize(12);
+            doc.text(`NET PAY : ₹ ${netPay.toFixed(2)}/-`, 105, finalY + 18, null, null, "center");
+
+            doc.save(`Payslip_${emp.personal.name}_${month}.pdf`);
+
+            // Save to Cloud
+            await callAPI('SAVE_PAYSLIP', {month, year, empName:emp.personal.name, empCode:emp.code, department:dept.name, entity:dept.entity, netPay});
+            alert("Payslip Generated!");
+        }
     </script>
 </body>
 </html>
