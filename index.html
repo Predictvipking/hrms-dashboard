@@ -2,487 +2,454 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise HRMS AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Enterprise HRMS AI | Cloud Portal</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Branding -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiSFJNUyBQcm8iLCJzaG9ydF9uYW1lIjoiSFJNUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWU0MGFmIiwidGhlbWVfY29sb3IiOiIjMWU0MGFmIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzQxNDAvNDE0MDQ2MS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+    <meta name="theme-color" content="#1e40af">
+
+    <!-- CSS / Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- PDF Libs -->
+    <!-- PDF Engines -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        .loader-dots div { animation: loader-dots1 0.6s infinite; }
-        .loader-dots div:nth-child(1) { left: 8px; animation-delay: 0s; }
-        .loader-dots div:nth-child(2) { left: 32px; animation-delay: 0.2s; }
-        .loader-dots div:nth-child(3) { left: 56px; animation-delay: 0.4s; }
-        @keyframes loader-dots1 { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        /* Toggle Switch */
-        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
+        /* Custom Toggles & Sidebar */
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Sidebar Collapsed Logic */
+        .sidebar-collapsed { width: 4rem; }
+        .sidebar-collapsed .nav-label { display: none; }
+        .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar-collapsed .brand-text { display: none; }
+        
+        /* Tooltip Logic */
+        .nav-item .tooltip { display: none; }
+        .sidebar-collapsed .nav-item:hover .tooltip { display: block; }
+
+        /* Skeleton Loading Animation */
+        .skeleton { background: #e5e7eb; border-radius: 4px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Toggle Colors */
+        .toggle-checkbox:checked + .block { background-color: #10b981; } /* Green for Manual */
+        .toggle-checkbox:checked + .block + .dot { transform: translateX(100%); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+<body class="bg-gray-50 text-gray-800 font-sans antialiased select-none">
 
-    <!-- LOADER -->
-    <div id="loader" class="fixed inset-0 bg-white/90 z-[9999] flex flex-col items-center justify-center backdrop-blur-sm">
-        <div class="loader-dots block relative w-20 h-5 mt-2">
-            <div class="absolute top-0 w-3 h-3 rounded-full bg-blue-600"></div>
-            <div class="absolute top-0 w-3 h-3 rounded-full bg-blue-600"></div>
-            <div class="absolute top-0 w-3 h-3 rounded-full bg-blue-600"></div>
+    <!-- SKELETON LOADER SCREEN -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
+        <div class="w-full max-w-sm p-4 space-y-4">
+            <div class="flex justify-center mb-6"><div class="skeleton h-16 w-16 rounded-full"></div></div>
+            <div class="skeleton h-8 w-3/4 mx-auto"></div>
+            <div class="skeleton h-12 w-full"></div>
+            <div class="skeleton h-12 w-full"></div>
+            <div class="skeleton h-10 w-1/2 mx-auto"></div>
         </div>
-        <p class="mt-4 text-gray-500 font-medium animate-pulse">Syncing Secure Data...</p>
+        <p class="mt-8 text-xs text-gray-400 font-mono">Connecting to HR Database...</p>
     </div>
 
-    <!-- AUTH SECTION -->
-    <div id="auth-wrapper" class="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-        
-        <!-- SETUP -->
-        <div id="view-setup" class="hidden w-full max-w-md bg-white rounded-2xl shadow-2xl relative z-10">
-            <div class="bg-blue-600 p-6 text-center rounded-t-2xl text-white">
-                <h1 class="text-2xl font-bold">System Initialization</h1>
-            </div>
-            <form id="setupForm" class="p-8 space-y-4">
-                <input id="setupOrg" placeholder="Organization Name" required class="w-full px-4 py-3 border rounded-lg">
-                <input id="setupAddr" placeholder="Head Office Address" required class="w-full px-4 py-3 border rounded-lg">
-                <input type="email" id="setupEmail" placeholder="Super Admin Email" required class="w-full px-4 py-3 border rounded-lg">
-                <input type="password" id="setupPass" placeholder="Create Password" required class="w-full px-4 py-3 border rounded-lg">
-                <button class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Start System</button>
+    <!-- ================= AUTH SECTION ================= -->
+    <div id="auth-wrapper" class="hidden min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4 relative">
+        <!-- SETUP (First Time) -->
+        <div id="view-setup" class="hidden w-full max-w-md bg-white rounded-2xl shadow-2xl z-10 overflow-hidden">
+            <div class="bg-blue-600 p-6 text-center text-white"><h1 class="text-xl font-bold">System Setup</h1></div>
+            <form id="setupForm" class="p-6 space-y-4">
+                <input id="setupOrg" placeholder="Organization Name" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="setupAddr" placeholder="Address" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="email" id="setupEmail" placeholder="Admin Email" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="password" id="setupPass" placeholder="Password" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <button class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Initialize</button>
             </form>
         </div>
 
         <!-- LOGIN -->
-        <div id="view-login" class="hidden w-full max-w-sm bg-white rounded-2xl shadow-2xl relative z-10">
-            <div class="p-8 text-center pb-0">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4 text-blue-600 text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
-                <h2 id="loginOrgName" class="text-2xl font-bold text-gray-800">Secure Login</h2>
+        <div id="view-login" class="hidden w-full max-w-sm bg-white rounded-2xl shadow-2xl z-10 overflow-hidden">
+            <div class="p-8 text-center pb-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4 text-blue-600 text-3xl shadow-sm"><i class="fa-solid fa-fingerprint"></i></div>
+                <h2 id="loginOrgName" class="text-2xl font-bold text-gray-800">HR Portal</h2>
+                <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Admin & Staff Access</p>
             </div>
-            <form id="loginForm" class="p-8 space-y-5">
-                <div class="relative"><i class="fa-solid fa-user absolute left-4 top-3.5 text-gray-400"></i><input type="email" id="loginEmail" placeholder="Email ID" required class="pl-12 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400"></i>
-                    <input type="password" id="loginPass" placeholder="Password" required class="pl-12 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+            <form id="loginForm" class="p-8 pt-6 space-y-5">
+                <div class="relative group">
+                    <i class="fa-solid fa-user absolute left-4 top-3.5 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                    <input type="text" id="loginEmail" placeholder="Email or Emp Code" required class="pl-12 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white transition">
+                </div>
+                <div class="relative group">
+                    <i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                    <input type="password" id="loginPass" placeholder="Password" required class="pl-12 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 focus:bg-white transition">
                     <i class="fa-solid fa-eye absolute right-4 top-3.5 text-gray-400 cursor-pointer hover:text-blue-600" onclick="togglePass('loginPass')"></i>
                 </div>
-                <button class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg">Access Dashboard</button>
+                <button class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg transition transform hover:-translate-y-0.5">Secure Login</button>
             </form>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- ================= ADMIN DASHBOARD ================= -->
     <div id="view-dashboard" class="hidden flex h-screen overflow-hidden bg-gray-100">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-all duration-300">
-            <div class="p-6 border-b border-slate-700 font-bold text-xl flex items-center gap-2"><i class="fa-brands fa-hive text-blue-400"></i> HRMS Pro</div>
-            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto no-scrollbar">
-                <a onclick="navTo('tab-home')" id="nav-home" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer bg-blue-600 text-white"><i class="fa-solid fa-chart-pie w-6 mr-2"></i> Dashboard</a>
-                <a onclick="navTo('tab-users')" id="nav-users" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800"><i class="fa-solid fa-users-gear w-6 mr-2"></i> Admin Console</a>
-                <a onclick="navTo('tab-depts')" id="nav-depts" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800"><i class="fa-solid fa-building w-6 mr-2"></i> Departments</a>
-                <a onclick="navTo('tab-emp')" id="nav-emp" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800"><i class="fa-solid fa-users w-6 mr-2"></i> Employees</a>
-                <a onclick="navTo('tab-pay')" id="nav-pay" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800"><i class="fa-solid fa-file-invoice-dollar w-6 mr-2"></i> Payslip</a>
-                <a onclick="navTo('tab-history')" id="nav-history" class="nav-item flex items-center px-4 py-3 rounded-lg cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800"><i class="fa-solid fa-clock-rotate-left w-6 mr-2"></i> History</a>
+        <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-all duration-300 relative group">
+            <div class="p-6 border-b border-slate-700 font-bold text-xl flex items-center gap-3 overflow-hidden whitespace-nowrap">
+                <i class="fa-brands fa-hive text-blue-400 text-2xl"></i> <span class="brand-text">HRMS AI</span>
+            </div>
+            
+            <nav class="flex-1 py-4 px-2 space-y-2 overflow-y-auto no-scrollbar">
+                <!-- Nav Items -->
+                <div onclick="navTo('tab-home')" id="nav-home" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer bg-blue-600 text-white relative group">
+                    <i class="fa-solid fa-chart-pie w-6 text-center text-lg"></i> <span class="ml-3 nav-label font-medium">Dashboard</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">Dashboard</div>
+                </div>
+                <div onclick="navTo('tab-users')" id="nav-users" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800 relative group">
+                    <i class="fa-solid fa-users-gear w-6 text-center text-lg"></i> <span class="ml-3 nav-label">Admin Console</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">Admin Console</div>
+                </div>
+                <div onclick="navTo('tab-depts')" id="nav-depts" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800 relative group">
+                    <i class="fa-solid fa-building w-6 text-center text-lg"></i> <span class="ml-3 nav-label">Departments</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">Departments</div>
+                </div>
+                <div onclick="navTo('tab-emp')" id="nav-emp" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800 relative group">
+                    <i class="fa-solid fa-users w-6 text-center text-lg"></i> <span class="ml-3 nav-label">Employees</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">Employees</div>
+                </div>
+                <div onclick="navTo('tab-pay')" id="nav-pay" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800 relative group">
+                    <i class="fa-solid fa-file-invoice-dollar w-6 text-center text-lg"></i> <span class="ml-3 nav-label">Payslip Gen</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">Payslip Gen</div>
+                </div>
+                <div onclick="navTo('tab-history')" id="nav-history" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800 relative group">
+                    <i class="fa-solid fa-clock-rotate-left w-6 text-center text-lg"></i> <span class="ml-3 nav-label">History</span>
+                    <div class="tooltip absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded ml-2 z-50 whitespace-nowrap">History</div>
+                </div>
             </nav>
-            <div class="p-4 border-t border-slate-700"><button onclick="location.reload()" class="w-full py-2 bg-red-600/20 text-red-300 hover:bg-red-600 hover:text-white rounded-lg transition"><i class="fa-solid fa-power-off mr-2"></i> Logout</button></div>
+            <div class="p-4 border-t border-slate-700">
+                <button onclick="location.reload()" class="w-full flex justify-center py-2 text-red-400 hover:text-white hover:bg-red-600/20 rounded-lg transition"><i class="fa-solid fa-power-off"></i></button>
+            </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Area -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
                 <div class="flex items-center gap-4">
-                    <button onclick="document.getElementById('sidebar').classList.toggle('-ml-64')" class="text-gray-500 hover:text-blue-600 text-xl"><i class="fa-solid fa-bars"></i></button>
-                    <h2 class="text-xl font-bold text-gray-800 hidden md:block">Overview</h2>
+                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-blue-600 text-xl p-2 rounded-full hover:bg-gray-100 transition"><i class="fa-solid fa-bars-staggered"></i></button>
+                    <h2 class="text-xl font-bold text-gray-800 hidden md:block">Dashboard</h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="text-right"><p id="userDisplay" class="text-sm font-bold text-gray-900">User</p><span id="roleDisplay" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">Role</span></div>
-                    <div class="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center"><i class="fa-solid fa-user"></i></div>
+                    <div class="text-right hidden sm:block"><p id="userDisplay" class="text-sm font-bold text-gray-900">User</p><span id="roleDisplay" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">Role</span></div>
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg"><i class="fa-solid fa-user-tie"></i></div>
                 </div>
             </header>
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
-                
-                <!-- TAB: HOME -->
-                <div id="tab-home" class="space-y-6">
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
-                        <div><h3 class="text-lg font-bold"><i class="fa-solid fa-robot mr-2"></i> AI Insight</h3><p id="aiText" class="text-indigo-100 text-sm mt-1">Analyzing Data...</p></div>
-                        <i class="fa-solid fa-wand-magic-sparkles text-4xl opacity-50"></i>
-                    </div>
+                <!-- HOME -->
+                <div id="tab-home">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><p class="text-xs font-bold text-gray-500 uppercase">Total Staff</p><h3 id="statEmp" class="text-3xl font-bold text-gray-800">0</h3></div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><p class="text-xs font-bold text-gray-500 uppercase">Departments</p><h3 id="statDept" class="text-3xl font-bold text-gray-800">0</h3></div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><p class="text-xs font-bold text-gray-500 uppercase">Cloud Status</p><h3 class="text-lg font-bold text-green-600 flex items-center gap-2 mt-1"><span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span> Connected</h3></div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition"><p class="text-xs font-bold text-gray-500 uppercase">Total Staff</p><h3 id="statEmp" class="text-4xl font-bold text-gray-800 mt-2">0</h3></div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition"><p class="text-xs font-bold text-gray-500 uppercase">Departments</p><h3 id="statDept" class="text-4xl font-bold text-gray-800 mt-2">0</h3></div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition"><p class="text-xs font-bold text-gray-500 uppercase">System Status</p><h3 class="text-xl font-bold text-emerald-600 flex items-center gap-2 mt-3"><span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Online</h3></div>
                     </div>
                 </div>
-
-                <!-- TAB: ADMIN CONSOLE (User Mgmt) -->
+                <!-- ADMIN CONSOLE -->
                 <div id="tab-users" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Create/Edit User Form -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-1 border">
-                        <h3 class="font-bold mb-4 flex items-center gap-2 text-blue-800"><i class="fa-solid fa-user-shield"></i> Manage Access</h3>
-                        <form id="userForm" class="space-y-3">
-                            <input id="newUserName" placeholder="Full Name" required class="w-full border rounded-lg p-2 text-sm">
-                            <input type="email" id="newUserEmail" placeholder="Email (Login ID)" required class="w-full border rounded-lg p-2 text-sm bg-gray-50">
-                            <div class="relative">
-                                <input type="password" id="newUserPass" placeholder="Password" required class="w-full border rounded-lg p-2 text-sm">
-                                <i class="fa-solid fa-eye absolute right-3 top-2.5 text-gray-400 cursor-pointer hover:text-blue-600" onclick="togglePass('newUserPass')"></i>
-                            </div>
-                            <select id="newUserRole" class="w-full border rounded-lg p-2 text-sm bg-white"><option value="HR">HR Manager</option><option value="MANAGER">Dept Head</option><option value="ACCOUNTANT">Accountant</option></select>
-                            
-                            <div class="bg-gray-50 p-3 rounded-lg text-sm border">
-                                <p class="text-xs font-bold text-gray-500 mb-2">PERMISSIONS</p>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label><input type="checkbox" id="perm_dept"> Depts</label>
-                                    <label><input type="checkbox" id="perm_emp"> Staff</label>
-                                    <label><input type="checkbox" id="perm_pay"> Payroll</label>
-                                    <label><input type="checkbox" id="perm_hist"> History</label>
-                                </div>
-                            </div>
-                            <button class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700">Save / Update User</button>
-                        </form>
-                    </div>
-                    <!-- User Table -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2 border overflow-x-auto">
-                        <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-gray-50 text-gray-500 font-bold uppercase"><tr><th class="p-3">User</th><th class="p-3">Role</th><th class="p-3">Last Access (IP/Device)</th><th class="p-3 text-right">Action</th></tr></thead>
-                            <tbody id="userTableBody"></tbody>
-                        </table>
-                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-1"><h3 class="font-bold mb-4">Add User</h3><form id="userForm" class="space-y-3"><input id="newUserName" placeholder="Name" required class="w-full border rounded p-2"><input type="email" id="newUserEmail" placeholder="Email" required class="w-full border rounded p-2"><input type="password" id="newUserPass" placeholder="Password" required class="w-full border rounded p-2"><select id="newUserRole" class="w-full border rounded p-2 bg-white"><option value="HR">HR</option><option value="MANAGER">Manager</option></select><div class="bg-gray-50 p-3 rounded text-sm grid grid-cols-2 gap-2"><label><input type="checkbox" id="perm_dept"> Depts</label><label><input type="checkbox" id="perm_pay"> Payroll</label></div><button class="w-full bg-blue-600 text-white py-2 rounded">Create</button></form></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-2 overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-50 uppercase"><tr><th class="p-3">User</th><th class="p-3">Role</th><th class="p-3">Last Access</th><th class="p-3 text-right">Act</th></tr></thead><tbody id="userTableBody"></tbody></table></div>
                 </div>
-
-                <!-- TAB: DEPARTMENTS -->
-                <div id="tab-depts" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-1">
-                        <h3 class="font-bold mb-4">Add Department</h3>
-                        <form id="deptForm" class="space-y-3">
-                            <input id="newEntity" placeholder="Entity (e.g. NIDS)" required class="w-full border rounded-lg p-2">
-                            <input id="newDept" placeholder="Department Name" required class="w-full border rounded-lg p-2">
-                            <textarea id="newDeptAddr" placeholder="Address (For Payslip Header)" rows="2" class="w-full border rounded-lg p-2"></textarea>
-                            <button class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold">Add Department</button>
-                        </form>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-2"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-3">Entity</th><th class="p-3">Dept</th><th class="p-3 text-right">Action</th></tr></thead><tbody id="deptTableBody"></tbody></table></div>
-                </div>
-
-                <!-- TAB: EMPLOYEES -->
-                <div id="tab-emp" class="hidden">
-                    <div class="flex justify-between mb-4"><h3 class="text-xl font-bold">Employees</h3><button onclick="openEmpModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">+ Add Employee</button></div>
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-4">Code</th><th class="p-4">Name</th><th class="p-4">Dept</th><th class="p-4 text-right">Actions</th></tr></thead><tbody id="empTableBody" class="divide-y"></tbody></table></div>
-                </div>
-
-                <!-- TAB: PAYSLIP -->
-                <div id="tab-pay" class="hidden">
-                    <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-8 border">
-                        <h3 class="text-xl font-bold mb-6 border-b pb-2">Payslip Generator</h3>
-                        <div class="grid grid-cols-2 gap-6 mb-4">
-                            <div><label class="text-xs font-bold text-gray-500 uppercase">Employee</label><select id="psEmpSelect" onchange="autoFetchEmp()" class="w-full border rounded-lg p-2 mt-1 bg-gray-50"><option>-- Search --</option></select></div>
-                            <div><label class="text-xs font-bold text-gray-500 uppercase">Profile</label><input id="psDisplayInfo" readonly class="w-full border rounded-lg p-2 mt-1 bg-gray-100"></div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 mb-4">
-                            <div><label class="text-xs font-bold text-gray-500">Month</label><select id="psMonth" class="w-full border rounded p-2"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div>
-                            <div><label class="text-xs font-bold text-gray-500">Year</label><select id="psYear" class="w-full border rounded p-2"></select></div>
-                            <div><label class="text-xs font-bold text-gray-500">Total Days</label><input type="number" id="psTotalDays" value="30" class="w-full border rounded p-2"></div>
-                        </div>
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                <h4 class="text-xs font-bold text-blue-800 uppercase mb-2">Attendance</h4>
-                                <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <div><label>CL</label><input type="number" id="psCL" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>SL</label><input type="number" id="psSL" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>AL</label><input type="number" id="psAL" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>Absent</label><input type="number" id="psAbsent" value="0" class="w-full border rounded p-1"></div>
-                                    <div class="col-span-2"><label class="text-blue-700 font-bold">Paid Days</label><input type="number" id="psPayDays" value="30" class="w-full border rounded p-1 font-bold"></div>
-                                </div>
-                            </div>
-                            <div class="bg-red-50 p-4 rounded-lg border border-red-100">
-                                <h4 class="text-xs font-bold text-red-800 uppercase mb-2">Deductions (Monthly)</h4>
-                                <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <div><label>Food</label><input type="number" id="psDedFood" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>Loan/Adv</label><input type="number" id="psDedAdv" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>Tax/TDS</label><input type="number" id="psDedTax" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>Welfare</label><input type="number" id="psDedWelfare" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>MUT</label><input type="number" id="psDedMUT" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>LOP Amt</label><input type="number" id="psDedLOP" value="0" class="w-full border rounded p-1"></div>
-                                    <input type="hidden" id="psDedMed" value="0">
-                                </div>
-                            </div>
-                        </div>
-                        <input type="hidden" id="fixBasic"><input type="hidden" id="fixDA"><input type="hidden" id="fixTA"><input type="hidden" id="fixHRA"><input type="hidden" id="fixOther"><input type="hidden" id="fixEPF"><input type="hidden" id="fixESI">
-                        <button onclick="generatePDF()" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-lg font-bold hover:bg-slate-900 shadow-lg">Generate Payslip</button>
-                    </div>
-                </div>
-
-                <!-- TAB: HISTORY -->
-                <div id="tab-history" class="hidden">
-                    <h3 class="text-xl font-bold mb-4">Payslip History</h3>
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-4">Date</th><th class="p-4">Period</th><th class="p-4">Employee</th><th class="p-4">Net Pay</th><th class="p-4 text-right">User</th></tr></thead><tbody id="historyTableBody" class="divide-y"></tbody></table></div>
-                </div>
+                
+                <!-- DEPTS -->
+                <div id="tab-depts" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-1"><h3 class="font-bold mb-4">Add Dept</h3><form id="deptForm" class="space-y-3"><input id="newEntity" placeholder="Entity" required class="w-full border rounded p-2"><input id="newDept" placeholder="Department" required class="w-full border rounded p-2"><textarea id="newDeptAddr" placeholder="Address" rows="2" class="w-full border rounded p-2"></textarea><button class="w-full bg-blue-600 text-white py-2 rounded">Add</button></form></div><div class="bg-white p-6 rounded-xl shadow-sm border lg:col-span-2"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-3">Entity</th><th class="p-3">Dept</th><th class="p-3 text-right">Act</th></tr></thead><tbody id="deptTableBody"></tbody></table></div></div>
+                
+                <!-- EMPLOYEES -->
+                <div id="tab-emp" class="hidden"><div class="flex justify-between mb-4"><h3 class="text-xl font-bold">Employees</h3><button onclick="openEmpModal()" class="bg-blue-600 text-white px-4 py-2 rounded shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Employee</button></div><div class="bg-white rounded-xl shadow-sm overflow-hidden border"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-4">Code</th><th class="p-4">Name</th><th class="p-4">Dept</th><th class="p-4 text-right">Actions</th></tr></thead><tbody id="empTableBody" class="divide-y"></tbody></table></div></div>
+                
+                <!-- PAYSLIP -->
+                <div id="tab-pay" class="hidden"><div class="max-w-5xl mx-auto bg-white rounded-xl shadow p-8 border"><h3 class="text-xl font-bold mb-6 border-b pb-2">Payslip Generator</h3><div class="grid grid-cols-2 gap-6 mb-4"><div><label class="block text-sm font-bold">Select</label><select id="psEmpSelect" onchange="autoFetchEmp()" class="w-full border rounded p-2 mt-1"><option>-- Search --</option></select></div><div><label class="block text-sm font-bold">Info</label><input id="psDisplayInfo" readonly class="w-full border rounded p-2 mt-1 bg-gray-50"></div></div><div class="grid grid-cols-3 gap-4 mb-4"><div><label class="text-xs font-bold text-gray-500">Month</label><select id="psMonth" class="w-full border rounded p-2"><option>October</option><option>November</option><option>December</option></select></div><div><label class="text-xs font-bold text-gray-500">Year</label><select id="psYear" class="w-full border rounded p-2"></select></div><div><label class="text-xs font-bold text-gray-500">Days</label><input type="number" id="psTotalDays" value="30" class="w-full border rounded p-2"></div></div><div class="grid md:grid-cols-2 gap-6"><div class="bg-blue-50 p-4 rounded border"><h4 class="text-xs font-bold text-blue-800 mb-2">Attendance</h4><div class="grid grid-cols-2 gap-2 text-sm"><div><label>CL</label><input type="number" id="psCL" value="0" class="w-full border rounded p-1"></div><div><label>SL</label><input type="number" id="psSL" value="0" class="w-full border rounded p-1"></div><div><label>AL</label><input type="number" id="psAL" value="0" class="w-full border rounded p-1"></div><div><label>Absent</label><input type="number" id="psAbsent" value="0" class="w-full border rounded p-1"></div><div class="col-span-2"><label class="text-blue-700 font-bold">Paid Days</label><input type="number" id="psPayDays" value="30" class="w-full border rounded p-1 font-bold"></div><input type="hidden" id="psPresent" value="30"></div></div><div class="bg-red-50 p-4 rounded border"><h4 class="text-xs font-bold text-red-800 mb-2">Deductions</h4><div class="grid grid-cols-2 gap-2 text-sm"><div><label>Food</label><input type="number" id="psDedFood" value="0" class="w-full border rounded p-1"></div><div><label>Loan</label><input type="number" id="psDedAdv" value="0" class="w-full border rounded p-1"></div><div><label>MUT</label><input type="number" id="psDedMUT" value="0" class="w-full border rounded p-1"></div><div><label>LOP</label><input type="number" id="psDedLOP" value="0" class="w-full border rounded p-1"></div><input type="hidden" id="psDedTax" value="0"><input type="hidden" id="psDedWelfare" value="0"><input type="hidden" id="psDedMed" value="0"></div></div></div><input type="hidden" id="fixBasic"><input type="hidden" id="fixDA"><input type="hidden" id="fixTA"><input type="hidden" id="fixHRA"><input type="hidden" id="fixOther"><input type="hidden" id="fixEPF"><input type="hidden" id="fixESI"><button onclick="generatePDF()" class="w-full mt-6 bg-slate-800 text-white py-3 rounded font-bold hover:bg-slate-900 shadow-lg">Generate Payslip</button></div></div>
+                
+                <!-- HISTORY -->
+                <div id="tab-history" class="hidden"><h3 class="text-xl font-bold mb-4">History</h3><div class="bg-white rounded-xl shadow-sm overflow-hidden border"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase"><tr><th class="p-4">Date</th><th class="p-4">Period</th><th class="p-4">Emp</th><th class="p-4">Net</th><th class="p-4 text-right">By</th></tr></thead><tbody id="historyTableBody" class="divide-y"></tbody></table></div></div>
             </main>
         </div>
     </div>
 
-    <!-- MODAL: ADD EMPLOYEE (With Auto/Manual Switch) -->
+    <!-- ================= EMPLOYEE APP VIEW (Mobile) ================= -->
+    <div id="view-employee-app" class="hidden flex flex-col h-screen bg-gray-50">
+        <header class="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 shadow-lg sticky top-0 z-20 flex justify-between items-center rounded-b-3xl">
+            <div><h1 class="text-lg font-bold" id="empAppTitle">My Portal</h1><p class="text-xs text-blue-200" id="empAppName">Welcome</p></div>
+            <div onclick="location.reload()" class="bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white/30"><i class="fa-solid fa-power-off"></i></div>
+        </header>
+        <main class="flex-1 overflow-y-auto p-4 pb-24">
+            <div id="app-tab-profile">
+                <div class="bg-white rounded-2xl shadow-sm p-6 mb-4 text-center border border-gray-100">
+                    <div class="w-20 h-20 bg-blue-50 rounded-full mx-auto flex items-center justify-center text-blue-600 text-3xl mb-3 border-4 border-white shadow"><i class="fa-regular fa-id-card"></i></div>
+                    <h2 class="text-xl font-bold text-gray-800" id="appEmpName">-</h2>
+                    <p class="text-gray-500 text-sm" id="appEmpDesg">-</p>
+                    <span class="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-mono rounded-full" id="appEmpCode">-</span>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                    <div class="p-4 bg-gray-50 border-b text-xs font-bold text-gray-500 uppercase tracking-wide">Employment Details</div>
+                    <div class="p-5 space-y-4 text-sm">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span>Date of Joining</span><span class="font-bold text-gray-700" id="appEmpDOJ">-</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span>Department</span><span class="font-bold text-gray-700" id="appEmpDept">-</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span>Status</span><span class="font-bold text-gray-700" id="appEmpStatus">-</span></div>
+                        <div class="flex justify-between"><span>PAN Number</span><span class="font-bold text-gray-700" id="appEmpPAN">-</span></div>
+                    </div>
+                </div>
+            </div>
+            <div id="app-tab-payslips" class="hidden">
+                <h3 class="font-bold text-gray-700 mb-4 pl-1">Salary Slips</h3>
+                <div id="appPayslipList" class="space-y-3"></div>
+            </div>
+        </main>
+        <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around py-3 pb-safe z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <div onclick="switchAppTab('profile')" id="nav-app-profile" class="flex flex-col items-center text-blue-600 cursor-pointer w-full mobile-nav-active"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></div>
+            <div onclick="switchAppTab('payslips')" id="nav-app-payslips" class="flex flex-col items-center text-gray-400 cursor-pointer w-full"><i class="fa-solid fa-file-invoice-dollar text-xl mb-1"></i><span class="text-[10px] font-bold">Payslips</span></div>
+        </nav>
+    </div>
+
+    <!-- MODAL: ADD EMPLOYEE (Updated) -->
     <div id="modal-emp" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4 p-6 animate-fade-in">
-            <div class="flex justify-between items-center mb-6 border-b pb-2">
-                <h3 id="empModalTitle" class="text-xl font-bold">Add Employee</h3>
-                <button onclick="document.getElementById('modal-emp').classList.add('hidden')" class="text-2xl text-gray-400 hover:text-red-500">&times;</button>
-            </div>
+            <div class="flex justify-between items-center mb-6 border-b pb-2"><h3 id="empModalTitle" class="text-xl font-bold">Add Employee</h3><button onclick="document.getElementById('modal-emp').classList.add('hidden')" class="text-2xl text-gray-400">&times;</button></div>
             <form id="empForm" class="space-y-6">
                 <input type="hidden" id="empId">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- CODE SWITCH -->
-                    <div class="relative bg-blue-50 p-2 rounded-lg border border-blue-100">
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="text-xs font-bold text-blue-800">EMP CODE</label>
-                            <div class="flex items-center">
-                                <label for="codeToggle" class="flex items-center cursor-pointer">
-                                    <div class="relative">
-                                        <input type="checkbox" id="codeToggle" class="sr-only" onchange="toggleCodeInput()">
-                                        <div class="block bg-gray-300 w-8 h-5 rounded-full"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform"></div>
-                                    </div>
-                                    <div class="ml-2 text-xs text-gray-600 font-medium" id="toggleLabel">Manual</div>
-                                </label>
-                            </div>
+                    <!-- Updated Toggle for Emp Code -->
+                    <div class="relative p-2 rounded-lg border border-gray-200" id="codeBox">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-bold text-gray-500">EMP CODE</label>
+                            <label class="flex items-center cursor-pointer">
+                                <span class="text-[10px] mr-2 text-gray-400 font-bold uppercase">Auto</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="codeToggle" class="sr-only" onchange="toggleCodeInput()">
+                                    <div class="block bg-gray-300 w-8 h-4 rounded-full"></div>
+                                    <div class="dot absolute left-1 top-0.5 bg-white w-3 h-3 rounded-full transition-transform transform translate-x-0"></div>
+                                </div>
+                                <span class="text-[10px] ml-2 text-gray-400 font-bold uppercase">Manual</span>
+                            </label>
                         </div>
-                        <input id="empCode" class="w-full border rounded p-1.5 text-sm" placeholder="Type Code">
+                        <input id="empCode" class="w-full border-0 bg-transparent text-sm font-mono focus:ring-0" readonly value="Auto-Generated">
                     </div>
 
-                    <div><label class="text-xs font-bold text-gray-500">Full Name</label><input id="empName" required class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">Department</label><select id="empDeptSelect" required class="w-full mt-1 border rounded p-2 bg-white"></select></div>
-                    <div><label class="text-xs font-bold text-gray-500">Designation</label><input id="empDesg" required class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">DOJ</label><input type="date" id="empDOJ" required class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">Status</label><select id="empStatus" class="w-full mt-1 border rounded p-2"><option>FullTime</option><option>Contract</option></select></div>
+                    <div><label class="text-xs font-bold text-gray-500">Full Name</label><input id="empName" required class="w-full mt-1 border rounded-lg p-2.5"></div>
+                    <div><label class="text-xs font-bold text-gray-500">Department</label><select id="empDeptSelect" required class="w-full mt-1 border rounded-lg p-2.5 bg-white"></select></div>
+                    <!-- Designation Dropdown -->
+                    <div><label class="text-xs font-bold text-gray-500">Designation</label><select id="empDesg" required class="w-full mt-1 border rounded-lg p-2.5 bg-white"></select></div>
+                    
+                    <div><label class="text-xs font-bold text-gray-500">DOJ</label><input type="date" id="empDOJ" required class="w-full mt-1 border rounded-lg p-2.5"></div>
+                    <div><label class="text-xs font-bold text-gray-500">Status</label><select id="empStatus" class="w-full mt-1 border rounded-lg p-2.5"><option>FullTime</option><option>Contract</option></select></div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-4">
-                    <div><label class="text-xs font-bold text-gray-500">Bank Name</label><input id="empBank" class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">Account No</label><input id="empAC" class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">IFSC</label><input id="empIFSC" class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">Aadhaar</label><input id="empAadhaar" class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">UAN</label><input id="empUAN" class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold text-gray-500">ESI No</label><input id="empESI" class="w-full mt-1 border rounded p-2"></div>
-                </div>
-                <div class="bg-gray-50 p-4 rounded border">
-                    <h4 class="text-sm font-bold text-green-600 mb-2">Salary Structure</h4>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div><label class="text-xs font-bold text-gray-500">Basic</label><input type="number" id="salBasic" value="0" class="w-full border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-gray-500">DA</label><input type="number" id="salDA" value="0" class="w-full border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-gray-500">TA</label><input type="number" id="salTA" value="0" class="w-full border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-gray-500">HRA</label><input type="number" id="salHRA" value="0" class="w-full border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-gray-500">Other</label><input type="number" id="salOther" value="0" class="w-full border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-red-500">EPF Fix</label><input type="number" id="salPF" value="0" class="w-full border-red-200 bg-red-50 border rounded p-2"></div>
-                        <div><label class="text-xs font-bold text-red-500">ESI Fix</label><input type="number" id="salESIFix" value="0" class="w-full border-red-200 bg-red-50 border rounded p-2"></div>
+                
+                <div class="bg-amber-50 p-4 rounded border border-amber-100">
+                    <h4 class="text-sm font-bold text-amber-800 mb-2">Employee Login Access</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-xs font-bold text-gray-500">Email (Login ID)</label><input type="email" id="empEmail" class="w-full border rounded p-2 bg-white"></div>
+                        <div><label class="text-xs font-bold text-gray-500">Password</label><input type="text" id="empPass" value="123456" class="w-full border rounded p-2 bg-white"></div>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-emp').classList.add('hidden')" class="px-6 py-2 rounded border font-bold hover:bg-gray-50">Cancel</button>
-                    <button class="px-8 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Save</button>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="text-xs font-bold text-gray-500">Bank Name</label><input id="empBank" class="w-full border rounded p-2"></div>
+                    <!-- Changed Label -->
+                    <div><label class="text-xs font-bold text-gray-500">Account Number</label><input id="empAC" class="w-full border rounded p-2"></div>
+                    <div><label class="text-xs font-bold text-gray-500">IFSC Code</label><input id="empIFSC" class="w-full border rounded p-2"></div>
+                    <div><label class="text-xs font-bold text-gray-500">Aadhaar</label><input id="empAadhaar" class="w-full border rounded p-2"></div>
+                    <div><label class="text-xs font-bold text-gray-500">UAN</label><input id="empUAN" class="w-full border rounded p-2"></div>
+                    <div><label class="text-xs font-bold text-gray-500">ESI No</label><input id="empESI" class="w-full border rounded p-2"></div>
                 </div>
+                
+                <div class="bg-gray-50 p-4 rounded border"><h4 class="text-sm font-bold text-green-600 mb-2">Salary Structure</h4><div class="grid grid-cols-4 gap-4"><div><label class="text-xs text-gray-500">Basic</label><input type="number" id="salBasic" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-gray-500">DA</label><input type="number" id="salDA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-gray-500">TA</label><input type="number" id="salTA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-gray-500">HRA</label><input type="number" id="salHRA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-gray-500">Other</label><input type="number" id="salOther" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-red-500">EPF</label><input type="number" id="salPF" value="0" class="w-full border rounded p-2 border-red-200"></div><div><label class="text-xs text-red-500">ESI</label><input type="number" id="salESIFix" value="0" class="w-full border rounded p-2 border-red-200"></div></div></div>
+                <div class="flex justify-end gap-3 pt-2"><button type="button" onclick="document.getElementById('modal-emp').classList.add('hidden')" class="px-6 py-2 rounded border font-bold hover:bg-gray-50">Cancel</button><button class="px-8 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Save</button></div>
             </form>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
     <script>
-        // *** CONFIGURATION ***
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA3Py_jTgXcZbNzHUINoaMUEAc_Qu-yXR6VhbwlBJN3hxwBRxg1OAVXOp9RBP1uaaa/exec";
+        // *** YOUR NEW URL ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7Kt93IG-u-SDLzXNUazfeIWtnvnSdxH4sTlu9xqTsRgoAnz_BYrQ3BhoNkkTt6U1n/exec";
         
-        let db = { depts: [], emps: [], users: [] };
-        let currentUser = null;
+        let db={depts:[],emps:[],users:[],desgs:[]}, currentUser=null;
 
-        // UI HELPERS
         function togglePass(id) { const i=document.getElementById(id); i.type = i.type==='password'?'text':'password'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('sidebar-collapsed'); }
         
-        function toggleCodeInput() {
-            const isManual = document.getElementById('codeToggle').checked;
-            const input = document.getElementById('empCode');
-            const label = document.getElementById('toggleLabel');
-            
-            if(isManual) {
-                input.readOnly = false;
-                input.value = '';
-                input.placeholder = "Type Code (e.g. EMP001)";
-                input.classList.remove('bg-gray-100', 'cursor-not-allowed');
-                label.innerText = "Manual";
-            } else {
-                input.readOnly = true;
-                input.value = 'Auto-Generated';
-                input.classList.add('bg-gray-100', 'cursor-not-allowed');
-                label.innerText = "Auto";
-            }
+        // Code Toggle Logic (Blue vs Green)
+        function toggleCodeInput() { 
+            const m=document.getElementById('codeToggle').checked; 
+            const i=document.getElementById('empCode');
+            const box=document.getElementById('codeBox');
+            if(m){ // Manual
+                i.readOnly=false; i.value=''; i.placeholder='Type Code';
+                box.classList.remove('bg-blue-50', 'border-blue-100');
+                box.classList.add('bg-green-50', 'border-green-100');
+            } else { // Auto
+                i.readOnly=true; i.value='Auto-Generated';
+                box.classList.remove('bg-green-50', 'border-green-100');
+                box.classList.add('bg-blue-50', 'border-blue-100');
+            } 
         }
-        // Custom style for toggle switch
-        document.head.insertAdjacentHTML("beforeend", `<style>.toggle-checkbox:checked + .block { background-color: #2563eb; } .toggle-checkbox:checked + .block + .dot { transform: translateX(100%); }</style>`)
 
-        // API
-        async function callAPI(action, payload={}) {
-            document.getElementById('loader').classList.remove('hidden');
-            try {
-                const res = await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...payload }) });
-                const data = await res.json();
+        async function callAPI(a,p={}) { 
+            // Only show loader if it's a major action, not background fetch if already loaded
+            if(a !== 'GET_ALL_DATA' || document.getElementById('auth-wrapper').classList.contains('hidden') === false) {
+                 document.getElementById('loader').classList.remove('hidden');
+            }
+            try{
+                const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:a,...p})});
+                const d=await r.json();
                 document.getElementById('loader').classList.add('hidden');
-                return data;
-            } catch(e) { document.getElementById('loader').classList.add('hidden'); alert("Connection Error"); return {status:'error'}; }
+                return d;
+            }catch(e){
+                document.getElementById('loader').classList.add('hidden');
+                console.error(e); // Silent fail for cleaner UX unless critical
+                return {status:'error'};
+            } 
         }
 
-        // IP TRACKING
-        async function getIP() {
-            try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } 
-            catch(e) { return 'Unknown'; }
-        }
-
-        // INIT
-        window.onload = async () => {
-            const ys = document.getElementById('psYear'); for(let y=2020; y<=2060; y++) { let o=document.createElement('option'); o.value=y; o.innerText=y; if(y==new Date().getFullYear()) o.selected=true; ys.appendChild(o); }
-            const res = await callAPI('GET_ALL_DATA');
-            if(res.status === 'success') {
-                db.depts = res.data.departments; db.emps = res.data.employees;
+        window.onload=async()=>{
+            // Skeleton Loader is visible by default
+            const ys=document.getElementById('psYear'); for(let y=2020;y<=2060;y++){let o=document.createElement('option');o.value=y;o.innerText=y;if(y==new Date().getFullYear())o.selected=true;ys.appendChild(o);}
+            const res=await callAPI('GET_ALL_DATA'); 
+            if(res.status==='success'){
+                db.depts=res.data.departments; db.emps=res.data.employees; db.desgs=res.data.designations;
                 document.getElementById('auth-wrapper').classList.remove('hidden');
-                if(!res.isSetup) document.getElementById('view-setup').classList.remove('hidden'); else document.getElementById('view-login').classList.remove('hidden');
+                document.getElementById('loader').classList.add('hidden'); // Hide Skeleton
+                if(!res.isSetup)document.getElementById('view-setup').classList.remove('hidden');else document.getElementById('view-login').classList.remove('hidden');
             }
         };
 
-        function navTo(id) {
-            const permMap = {'tab-users':'manage_users', 'tab-depts':'manage_dept', 'tab-emp':'manage_emp', 'tab-pay':'generate_payslip', 'tab-history':'view_history'};
-            if(currentUser.role !== 'SUPER_ADMIN' && permMap[id] && !currentUser.permissions[permMap[id]]) { alert("Access Denied"); return; }
-            document.querySelectorAll('#view-dashboard main > div').forEach(e=>e.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(e => { e.classList.remove('bg-blue-600','text-white'); e.classList.add('text-slate-400'); });
-            document.getElementById('nav-'+id.split('-')[1]).classList.add('bg-blue-600','text-white');
-            if(id=='tab-emp') renderEmps();
-            if(id=='tab-depts') renderDepts();
-            if(id=='tab-pay') fillEmpSelect();
-            if(id=='tab-history') loadHistory();
-            if(id=='tab-users') loadSystemUsers();
-        }
-
-        // AUTH HANDLERS
-        document.getElementById('setupForm').onsubmit = async (e) => { e.preventDefault(); await callAPI('SETUP_ORG', { name:document.getElementById('setupOrg').value, address:document.getElementById('setupAddr').value, email:document.getElementById('setupEmail').value, password:document.getElementById('setupPass').value }); location.reload(); };
+        // ... [Rest of the Logic remains largely same, just updated field names] ...
         
-        document.getElementById('loginForm').onsubmit = async (e) => {
+        document.getElementById('setupForm').onsubmit=async(e)=>{e.preventDefault();await callAPI('SETUP_ORG',{name:document.getElementById('setupOrg').value,address:document.getElementById('setupAddr').value,email:document.getElementById('setupEmail').value,password:document.getElementById('setupPass').value});location.reload();};
+        
+        document.getElementById('loginForm').onsubmit=async(e)=>{
             e.preventDefault();
-            const ip = await getIP();
-            const device = navigator.platform + " (" + navigator.userAgent.split(')')[0] + ")";
-            const res = await callAPI('LOGIN', { email:document.getElementById('loginEmail').value, password:document.getElementById('loginPass').value, ip: ip, device: device });
-            if(res.status === 'success') {
-                currentUser = res.user;
-                document.getElementById('userDisplay').innerText = currentUser.name;
-                document.getElementById('roleDisplay').innerText = currentUser.role;
+            const res=await callAPI('LOGIN',{email:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
+            if(res.status==='success'){
+                currentUser=res.user;
                 document.getElementById('auth-wrapper').classList.add('hidden');
-                document.getElementById('view-dashboard').classList.remove('hidden');
-                document.getElementById('statEmp').innerText = db.emps.length;
-                document.getElementById('statDept').innerText = db.depts.length;
-                if(currentUser.role!=='SUPER_ADMIN') document.getElementById('nav-users').classList.add('hidden');
-            } else alert(res.msg);
+                if(currentUser.role === 'EMPLOYEE') {
+                    document.getElementById('view-employee-app').classList.remove('hidden');
+                    setupEmployeeApp();
+                } else {
+                    document.getElementById('view-dashboard').classList.remove('hidden');
+                    document.getElementById('userDisplay').innerText=currentUser.name;
+                    document.getElementById('roleDisplay').innerText=currentUser.role;
+                    document.getElementById('statEmp').innerText=db.emps.length;
+                    document.getElementById('statDept').innerText=db.depts.length;
+                    if(currentUser.role!=='SUPER_ADMIN')document.getElementById('nav-users').classList.add('hidden');
+                }
+            }else alert(res.msg);
         };
 
-        // ADMIN CONSOLE: USER MGMT
-        async function loadSystemUsers() {
-            const res = await callAPI('GET_SYS_USERS');
-            const tb = document.getElementById('userTableBody'); tb.innerHTML = '';
-            if(res.status=='success') {
-                res.users.forEach(u => {
-                    const tracking = `<div class="text-xs text-gray-500"><i class="fa-solid fa-desktop mr-1"></i>${u.last_device || '-'}<br><i class="fa-solid fa-location-dot mr-1"></i>${u.last_ip || '-'}</div>`;
-                    tb.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold">${u.name}<br><span class="text-xs text-blue-500 font-normal">${u.email}</span></td><td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${u.role}</span></td><td class="p-3">${tracking}</td><td class="p-3 text-right"><button onclick='editUser(${JSON.stringify(u)})' class="text-blue-500 hover:text-blue-700 mr-2" title="Edit/Reset"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="delUser('${u.email}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        function navTo(id){ const pm={'tab-users':'manage_users','tab-depts':'manage_dept','tab-emp':'manage_emp','tab-pay':'generate_payslip','tab-history':'view_history'}; if(currentUser.role!=='SUPER_ADMIN'&&pm[id]&&!currentUser.permissions[pm[id]]){alert("Access Denied");return;} document.querySelectorAll('#view-dashboard main > div').forEach(e=>e.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('bg-blue-600','text-white');e.classList.add('text-slate-400')}); document.getElementById('nav-'+id.split('-')[1]).classList.add('bg-blue-600','text-white'); if(id=='tab-emp')renderEmps(); if(id=='tab-depts')renderDepts(); if(id=='tab-pay')fillEmpSelect(); if(id=='tab-history')loadHistory(); if(id=='tab-users')loadSystemUsers(); }
+        
+        function setupEmployeeApp() {
+            document.getElementById('appEmpName').innerText = currentUser.name;
+            document.getElementById('appEmpCode').innerText = currentUser.code;
+            document.getElementById('appEmpDesg').innerText = currentUser.designation;
+            document.getElementById('empAppName').innerText = "Hello, " + currentUser.name.split(' ')[0];
+            const empFull = db.emps.find(e => e.id == currentUser.id);
+            if(empFull) {
+                const d = db.depts.find(dp => dp.id == empFull.deptId);
+                document.getElementById('appEmpDept').innerText = d ? d.name : '-';
+                document.getElementById('appEmpDOJ').innerText = empFull.personal.doj.split('T')[0];
+                document.getElementById('appEmpStatus').innerText = empFull.personal.status;
+                document.getElementById('appEmpPAN').innerText = empFull.personal.pan;
+            }
+            loadMyPayslips();
+        }
+
+        async function loadMyPayslips() {
+            const res = await callAPI('GET_MY_PAYSLIPS', { code: currentUser.code }); // Fixed Param
+            const list = document.getElementById('appPayslipList'); list.innerHTML = '';
+            if(res.status === 'success' && res.history.length > 0) {
+                res.history.forEach(slip => {
+                    list.innerHTML += `<div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-600 flex justify-between items-center"><div><p class="font-bold text-gray-800">${slip[1]} ${slip[2]}</p><p class="text-xs text-gray-500">Processed: ${new Date(slip[0]).toLocaleDateString()}</p></div><div class="text-right"><p class="font-bold text-green-600">₹${slip[5]}</p></div></div>`;
                 });
-            }
+            } else { list.innerHTML = '<div class="text-center p-4 text-gray-400">No payslips found.</div>'; }
         }
 
-        document.getElementById('userForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('newUserName').value,
-                email: document.getElementById('newUserEmail').value,
-                password: document.getElementById('newUserPass').value,
-                role: document.getElementById('newUserRole').value,
-                permissions: { view_dashboard:true, manage_dept:document.getElementById('perm_dept').checked, manage_emp:document.getElementById('perm_emp').checked, generate_payslip:document.getElementById('perm_pay').checked, view_history:document.getElementById('perm_hist').checked }
-            };
-            await callAPI('SAVE_SYS_USER', payload);
-            alert("User Saved!");
-            document.getElementById('userForm').reset();
-            loadSystemUsers(); // Refresh Table without Reload
-        };
-
-        function editUser(u) {
-            document.getElementById('newUserName').value = u.name;
-            document.getElementById('newUserEmail').value = u.email;
-            document.getElementById('newUserPass').value = u.password;
-            document.getElementById('newUserRole').value = u.role;
-            alert("User loaded in form. Change details and click Save.");
+        function switchAppTab(tab) {
+            document.getElementById('app-tab-profile').classList.add('hidden'); document.getElementById('app-tab-payslips').classList.add('hidden');
+            document.getElementById('nav-app-profile').classList.remove('mobile-nav-active', 'text-blue-600'); document.getElementById('nav-app-payslips').classList.remove('mobile-nav-active', 'text-blue-600');
+            document.getElementById('app-tab-' + tab).classList.remove('hidden'); document.getElementById('nav-app-' + tab).classList.add('mobile-nav-active', 'text-blue-600');
         }
-        async function delUser(email) { if(confirm('Delete User?')) { await callAPI('DEL_SYS_USER', {email}); loadSystemUsers(); } }
 
-        // DEPARTMENTS
-        document.getElementById('deptForm').onsubmit = async (e) => { e.preventDefault(); const p={id:Date.now(), entity:document.getElementById('newEntity').value, name:document.getElementById('newDept').value, address:document.getElementById('newDeptAddr').value}; await callAPI('ADD_DEPT', p); db.depts.push(p); renderDepts(); e.target.reset(); };
-        function renderDepts() { const tb=document.getElementById('deptTableBody'); tb.innerHTML=''; db.depts.forEach(d=>tb.innerHTML+=`<tr class="border-b"><td class="p-3 font-bold">${d.entity}</td><td class="p-3">${d.name}<br><span class="text-xs text-gray-400">${d.address||''}</span></td><td class="p-3 text-right"><button onclick="delDept(${d.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`); }
-        async function delDept(id) { if(confirm('Delete?')) { await callAPI('DEL_DEPT', {id}); db.depts=db.depts.filter(d=>d.id!=id); renderDepts(); } }
-
-        // EMPLOYEES
-        function openEmpModal(emp=null) {
+        document.getElementById('deptForm').onsubmit=async(e)=>{e.preventDefault();const p={id:Date.now(),entity:document.getElementById('newEntity').value,name:document.getElementById('newDept').value,address:document.getElementById('newDeptAddr').value};await callAPI('ADD_DEPT',p);db.depts.push(p);renderDepts();e.target.reset();};
+        function renderDepts(){const tb=document.getElementById('deptTableBody');tb.innerHTML='';db.depts.forEach(d=>tb.innerHTML+=`<tr class="border-b"><td class="p-3 font-bold">${d.entity}</td><td class="p-3">${d.name}<br><span class="text-xs text-gray-400">${d.address||''}</span></td><td class="p-3 text-right"><button onclick="delDept(${d.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`);}
+        async function delDept(id){if(confirm('Delete?')){await callAPI('DEL_DEPT',{id});db.depts=db.depts.filter(d=>d.id!=id);renderDepts();}}
+        
+        function openEmpModal(e=null){
             document.getElementById('modal-emp').classList.remove('hidden');
-            const s=document.getElementById('empDeptSelect'); s.innerHTML=''; db.depts.forEach(d=>s.innerHTML+=`<option value="${d.id}">${d.entity} - ${d.name}</option>`);
-            
-            // Set Default Toggle to Manual for Edit, or reset for New
-            document.getElementById('codeToggle').checked = true; toggleCodeInput(); // Default Manual for safety
+            const s=document.getElementById('empDeptSelect');s.innerHTML='';db.depts.forEach(d=>s.innerHTML+=`<option value="${d.id}">${d.entity} - ${d.name}</option>`);
+            // Populate Designations
+            const degS=document.getElementById('empDesg'); degS.innerHTML='<option value="">Select</option>';
+            if(db.desgs) db.desgs.forEach(d => degS.innerHTML += `<option value="${d}">${d}</option>`);
 
-            if(emp) {
-                document.getElementById('empModalTitle').innerText='Edit Profile'; document.getElementById('empId').value=emp.id; document.getElementById('empCode').value=emp.code; document.getElementById('empName').value=emp.personal.name; document.getElementById('empDeptSelect').value=emp.deptId; document.getElementById('empDesg').value=emp.personal.desg; document.getElementById('empDOJ').value=emp.personal.doj.split('T')[0]; document.getElementById('empBank').value=emp.bank.name; document.getElementById('empAC').value=emp.bank.ac; document.getElementById('empIFSC').value=emp.bank.ifsc; document.getElementById('salBasic').value=emp.salary.basic; document.getElementById('salDA').value=emp.salary.da; document.getElementById('salPF').value=emp.salary.epf; 
-            } else { document.getElementById('empForm').reset(); document.getElementById('empModalTitle').innerText='Add Employee'; document.getElementById('empId').value=''; }
+            document.getElementById('codeToggle').checked=false; toggleCodeInput(); // Reset to Auto (Blue)
+            if(e){
+                document.getElementById('empId').value=e.id;document.getElementById('empCode').value=e.code;document.getElementById('empName').value=e.personal.name;document.getElementById('empDeptSelect').value=e.deptId;
+                document.getElementById('empDesg').value=e.personal.desg; 
+                document.getElementById('empDOJ').value=e.personal.doj.split('T')[0];document.getElementById('empStatus').value=e.personal.status;document.getElementById('empBank').value=e.bank.name;document.getElementById('empAC').value=e.bank.ac;document.getElementById('empIFSC').value=e.bank.ifsc;document.getElementById('empAadhaar').value=e.personal.aadhaar;document.getElementById('empPAN').value=e.personal.pan;document.getElementById('empUAN').value=e.personal.uan;document.getElementById('empESI').value=e.bank.esi;document.getElementById('salBasic').value=e.salary.basic;document.getElementById('salDA').value=e.salary.da;document.getElementById('salPF').value=e.salary.epf;
+                document.getElementById('empEmail').value = e.personal.email || ''; document.getElementById('empPass').value = e.personal.password || '123456';
+                document.getElementById('codeToggle').checked=true; toggleCodeInput(); // If editing, set to Manual so they can see/edit code
+            }else{document.getElementById('empForm').reset();document.getElementById('empId').value='';toggleCodeInput();}
         }
-
-        document.getElementById('empForm').onsubmit = async (e) => {
-            e.preventDefault(); const idVal=document.getElementById('empId').value;
-            let finalCode = document.getElementById('empCode').value;
-            if(!document.getElementById('codeToggle').checked) {
-                finalCode = 'EMP' + Math.floor(1000 + Math.random() * 9000); // Auto Generate
-            }
-
-            const emp = { id: idVal?idVal:Date.now(), deptId:document.getElementById('empDeptSelect').value, code:finalCode, personal: { name:document.getElementById('empName').value, desg:document.getElementById('empDesg').value, doj:document.getElementById('empDOJ').value, status:document.getElementById('empStatus').value, aadhaar:document.getElementById('empAadhaar').value, pan:document.getElementById('empPAN').value, uan:document.getElementById('empUAN').value }, bank: { name:document.getElementById('empBank').value, ac:document.getElementById('empAC').value, ifsc:document.getElementById('empIFSC').value, esi:document.getElementById('empESI').value }, salary: { basic:document.getElementById('salBasic').value, da:document.getElementById('salDA').value, ta:document.getElementById('salTA').value, hra:document.getElementById('salHRA').value, other:document.getElementById('salOther').value, epf:document.getElementById('salPF').value, esi_fixed:document.getElementById('salESIFix').value } };
-            await callAPI('ADD_EMP', emp); if(idVal){const i=db.emps.findIndex(x=>x.id==idVal); if(i!==-1)db.emps[i]=emp;} else db.emps.push(emp);
-            document.getElementById('modal-emp').classList.add('hidden'); renderEmps();
+        
+        document.getElementById('empForm').onsubmit=async(e)=>{
+            e.preventDefault();const id=document.getElementById('empId').value;
+            let c=document.getElementById('empCode').value; if(!document.getElementById('codeToggle').checked)c='EMP'+Math.floor(1000+Math.random()*9000);
+            const emp={id:id?id:Date.now(),deptId:document.getElementById('empDeptSelect').value,code:c,personal:{name:document.getElementById('empName').value,desg:document.getElementById('empDesg').value,doj:document.getElementById('empDOJ').value,status:document.getElementById('empStatus').value,aadhaar:document.getElementById('empAadhaar').value,pan:document.getElementById('empPAN').value,uan:document.getElementById('empUAN').value,email:document.getElementById('empEmail').value,password:document.getElementById('empPass').value},bank:{name:document.getElementById('empBank').value,ac:document.getElementById('empAC').value,ifsc:document.getElementById('empIFSC').value,esi:document.getElementById('empESI').value},salary:{basic:document.getElementById('salBasic').value,da:document.getElementById('salDA').value,ta:document.getElementById('salTA').value,hra:document.getElementById('salHRA').value,other:document.getElementById('salOther').value,epf:document.getElementById('salPF').value,esi_fixed:document.getElementById('salESIFix').value}};
+            await callAPI('ADD_EMP',emp);if(id){const i=db.emps.findIndex(x=>x.id==id);if(i!==-1)db.emps[i]=emp;}else db.emps.push(emp);
+            document.getElementById('modal-emp').classList.add('hidden');renderEmps();
         };
-        function renderEmps() { const tb=document.getElementById('empTableBody'); tb.innerHTML=''; db.emps.forEach(e=>{ const d=db.depts.find(x=>x.id==e.deptId)||{entity:'-',name:'-'}; tb.innerHTML+=`<tr class="border-b hover:bg-gray-50"><td class="p-4 font-mono text-blue-600 font-bold">${e.code}</td><td class="p-4 font-bold">${e.personal.name}<div class="text-xs text-gray-400 font-normal">${e.personal.desg}</div></td><td class="p-4 text-sm">${d.entity}<br>${d.name}</td><td class="p-4 text-right"><button onclick='openEmpModal(${JSON.stringify(e)})' class="text-blue-500 mr-3"><i class="fa-solid fa-pen"></i></button><button onclick="delEmp(${e.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`; }); }
-        async function delEmp(id) { if(confirm('Delete?')) { await callAPI('DEL_EMP', {id}); db.emps=db.emps.filter(e=>e.id!=id); renderEmps(); } }
+        function renderEmps(){const tb=document.getElementById('empTableBody');tb.innerHTML='';db.emps.forEach(e=>{const d=db.depts.find(x=>x.id==e.deptId)||{entity:'-',name:'-'};tb.innerHTML+=`<tr class="border-b hover:bg-gray-50"><td class="p-4 text-blue-600 font-mono">${e.code}</td><td class="p-4 font-bold">${e.personal.name}<br><small class="text-gray-400">${e.personal.email||'No Login'}</small></td><td class="p-4">${d.name}</td><td class="p-4 text-right"><button onclick='openEmpModal(${JSON.stringify(e)})' class="text-blue-500 mr-3"><i class="fa-solid fa-pen"></i></button><button onclick="delEmp(${e.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;});}
+        async function delEmp(id){if(confirm('Delete?')){await callAPI('DEL_EMP',{id});db.emps=db.emps.filter(e=>e.id!=id);renderEmps();}}
 
-        // PAYSLIP
-        function fillEmpSelect() { const s=document.getElementById('psEmpSelect'); s.innerHTML='<option>-- Select --</option>'; db.emps.forEach(e=>s.innerHTML+=`<option value="${e.id}">${e.personal.name} (${e.code})</option>`); }
-        function autoFetchEmp() { const id=document.getElementById('psEmpSelect').value; const e=db.emps.find(x=>x.id==id); if(e){ const d=db.depts.find(x=>x.id==e.deptId); document.getElementById('psDisplayInfo').value=`${e.personal.name} | ${e.personal.desg}`; document.getElementById('fixBasic').value=e.salary.basic; document.getElementById('fixDA').value=e.salary.da; document.getElementById('fixTA').value=e.salary.ta; document.getElementById('fixHRA').value=e.salary.hra; document.getElementById('fixOther').value=e.salary.other; document.getElementById('fixEPF').value=e.salary.epf; document.getElementById('fixESI').value=e.salary.esi_fixed; } }
-
-        async function generatePDF() {
-            const id = document.getElementById('psEmpSelect').value; if(!id || id.includes('Select')) return alert('Select Employee');
-            const emp=db.emps.find(e=>e.id==id), dept=db.depts.find(d=>d.id==emp.deptId), m=document.getElementById('psMonth').value, y=document.getElementById('psYear').value;
-            // Calc
+        async function loadSystemUsers(){const r=await callAPI('GET_SYS_USERS');const tb=document.getElementById('userTableBody');tb.innerHTML='';r.users.forEach(u=>{tb.innerHTML+=`<tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold">${u.name}<br><span class="text-xs text-blue-500">${u.email}</span></td><td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${u.role}</span></td><td class="p-3 text-xs text-gray-500">${u.last_device||'-'}</td><td class="p-3 text-right"><button onclick="delUser('${u.email}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;});}
+        async function delUser(e){if(confirm('Delete?')){await callAPI('DEL_SYS_USER',{email:e});loadSystemUsers();}}
+        document.getElementById('userForm').onsubmit=async(e)=>{e.preventDefault();await callAPI('SAVE_SYS_USER',{name:document.getElementById('newUserName').value,email:document.getElementById('newUserEmail').value,password:document.getElementById('newUserPass').value,role:document.getElementById('newUserRole').value,permissions:{view_dashboard:true,manage_dept:document.getElementById('perm_dept').checked,manage_emp:document.getElementById('perm_emp').checked,generate_payslip:document.getElementById('perm_pay').checked,view_history:document.getElementById('perm_hist').checked}});alert('Saved');document.getElementById('userForm').reset();loadSystemUsers();};
+        async function loadHistory(){const r=await callAPI('GET_HISTORY');const t=document.getElementById('historyTableBody');t.innerHTML='';if(r.status=='success')r.history.forEach(h=>{t.innerHTML+=`<tr class="border-b"><td class="p-4 text-gray-500">${new Date(h[0]).toLocaleDateString()}</td><td class="p-4 font-bold">${h[1]}</td><td class="p-4">${h[3]}</td><td class="p-4 text-green-600 font-bold">₹${h[5]}</td><td class="p-4 text-right text-xs text-gray-400">${h[6]}</td></tr>`;});}
+        
+        // PAYSLIP GEN
+        function fillEmpSelect(){const s=document.getElementById('psEmpSelect');s.innerHTML='<option>-- Select --</option>';db.emps.forEach(e=>s.innerHTML+=`<option value="${e.id}">${e.personal.name} (${e.code})</option>`);}
+        function autoFetchEmp(){const id=document.getElementById('psEmpSelect').value;const e=db.emps.find(x=>x.id==id);if(e){const d=db.depts.find(x=>x.id==e.deptId);document.getElementById('psDisplayInfo').value=`${e.personal.name} | ${e.personal.desg}`;document.getElementById('fixBasic').value=e.salary.basic;document.getElementById('fixDA').value=e.salary.da;document.getElementById('fixTA').value=e.salary.ta;document.getElementById('fixHRA').value=e.salary.hra;document.getElementById('fixOther').value=e.salary.other;document.getElementById('fixEPF').value=e.salary.epf;document.getElementById('fixESI').value=e.salary.esi_fixed;}}
+        async function generatePDF(){
+            const id=document.getElementById('psEmpSelect').value;if(!id||id.includes('Select'))return alert('Select Employee');
+            const e=db.emps.find(x=>x.id==id),d=db.depts.find(x=>x.id==e.deptId),m=document.getElementById('psMonth').value,y=document.getElementById('psYear').value;
+            // Basic Calc
             const basic=Number(document.getElementById('fixBasic').value), da=Number(document.getElementById('fixDA').value), ta=Number(document.getElementById('fixTA').value), hra=Number(document.getElementById('fixHRA').value), other=Number(document.getElementById('fixOther').value); const gross=basic+da+ta+hra+other;
             const epf=Number(document.getElementById('fixEPF').value), mut=Number(document.getElementById('psDedMUT').value), food=Number(document.getElementById('psDedFood').value), tax=Number(document.getElementById('psDedTax').value), esi=Number(document.getElementById('fixESI').value), welfare=Number(document.getElementById('psDedWelfare').value), adv=Number(document.getElementById('psDedAdv').value), lop=Number(document.getElementById('psDedLOP').value); const totalDed=epf+mut+food+tax+esi+welfare+adv+lop; const netPay=gross-totalDed;
             // PDF
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.setFont("times", "bold"); doc.setFontSize(22); doc.text(dept.entity, 105, 15, null, null, "center");
-            doc.setFont("times", "normal"); doc.setFontSize(10); doc.text(dept.address||"Head Office", 105, 20, null, null, "center");
+            doc.setFont("times", "bold"); doc.setFontSize(22); doc.text(d.entity, 105, 15, null, null, "center");
+            doc.setFont("times", "normal"); doc.setFontSize(10); doc.text(d.address||"Head Office", 105, 20, null, null, "center");
             doc.setFont("times", "bold"); doc.setFontSize(14); doc.text(`Payslip: ${m}-${y}`, 105, 28, null, null, "center"); doc.line(10, 30, 200, 30);
             
-            // Employee Profile Section
             doc.setFontSize(11); doc.setFont("times", "bold italic"); doc.text("Employee Profile:", 10, 38);
             const col1 = 10, col2 = 105; let Y = 45; const gap = 6;
-            doc.setFont("times", "bold"); doc.text("Employee Name:", col1, Y); doc.setFont("times", "normal"); doc.text(emp.personal.name, col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("Designation:", col2, Y); doc.setFont("times", "normal"); doc.text(emp.personal.desg, col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("Entity Name:", col1, Y); doc.setFont("times", "normal"); doc.text(dept.entity, col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("Department:", col2, Y); doc.setFont("times", "normal"); doc.text(dept.name, col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("Emp Status:", col1, Y); doc.setFont("times", "normal"); doc.text(emp.personal.status, col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("Date Of Joining:", col2, Y); doc.setFont("times", "normal"); doc.text(emp.personal.doj.split('T')[0], col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("Bank Name:", col1, Y); doc.setFont("times", "normal"); doc.text(emp.bank.name, col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("Aadhaar No:", col2, Y); doc.setFont("times", "normal"); doc.text(emp.personal.aadhaar, col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("Branch:", col1, Y); doc.setFont("times", "normal"); doc.text(emp.bank.branch||'', col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("ESI Number:", col2, Y); doc.setFont("times", "normal"); doc.text(emp.bank.esi, col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("A/c Number:", col1, Y); doc.setFont("times", "normal"); doc.text(String(emp.bank.ac), col1+35, Y);
-            doc.setFont("times", "bold"); doc.text("UAN:", col2, Y); doc.setFont("times", "normal"); doc.text(emp.personal.uan, col2+35, Y); Y+=gap;
-            doc.setFont("times", "bold"); doc.text("IFSC:", col1, Y); doc.setFont("times", "normal"); doc.text(emp.bank.ifsc, col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("Employee Name:", col1, Y); doc.setFont("times", "normal"); doc.text(e.personal.name, col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("Designation:", col2, Y); doc.setFont("times", "normal"); doc.text(e.personal.desg, col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("Entity Name:", col1, Y); doc.setFont("times", "normal"); doc.text(d.entity, col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("Department:", col2, Y); doc.setFont("times", "normal"); doc.text(d.name, col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("Emp Status:", col1, Y); doc.setFont("times", "normal"); doc.text(e.personal.status, col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("Date Of Joining:", col2, Y); doc.setFont("times", "normal"); doc.text(e.personal.doj.split('T')[0], col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("Bank Name:", col1, Y); doc.setFont("times", "normal"); doc.text(e.bank.name, col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("Aadhaar No:", col2, Y); doc.setFont("times", "normal"); doc.text(e.personal.aadhaar, col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("Branch:", col1, Y); doc.setFont("times", "normal"); doc.text(e.bank.branch||'', col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("ESI Number:", col2, Y); doc.setFont("times", "normal"); doc.text(e.bank.esi, col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("A/c Number:", col1, Y); doc.setFont("times", "normal"); doc.text(String(e.bank.ac), col1+35, Y);
+            doc.setFont("times", "bold"); doc.text("UAN:", col2, Y); doc.setFont("times", "normal"); doc.text(e.personal.uan, col2+35, Y); Y+=gap;
+            doc.setFont("times", "bold"); doc.text("IFSC:", col1, Y); doc.setFont("times", "normal"); doc.text(e.bank.ifsc, col1+35, Y);
             doc.setFont("times", "bold"); doc.text("MUT:", col2, Y); doc.setFont("times", "normal"); doc.text(String(mut), col2+35, y=Y); Y+=gap+5;
 
-            // Leave Section
             doc.setFont("times", "bold italic"); doc.text("Leave Summary and Attendance Record:", 10, Y); Y+=5;
             doc.setFont("times", "bold");
             doc.text("Casual Leave:", col1, Y); doc.setFont("times", "italic"); doc.text(document.getElementById('psCL').value, col1+30, Y);
@@ -499,16 +466,8 @@
             doc.line(105, fy, 105, fy + 9); doc.text("Total Deductions", 107, fy + 6); doc.text(totalDed.toFixed(2)+"/-", 155, fy + 6);
             doc.setFontSize(12); doc.text(`NET PAY : Rs. ${netPay.toFixed(2)}/-`, 105, fy + 20, null, null, "center");
             
-            doc.save(`Payslip_${emp.personal.name}.pdf`);
-            await callAPI('SAVE_PAYSLIP', {month:m, year:y, empName:emp.personal.name, empCode:emp.code, netPay:netPay, user:currentUser.name});
-        }
-
-        async function loadHistory() {
-            const res = await callAPI('GET_HISTORY');
-            const tb = document.getElementById('historyTableBody'); tb.innerHTML = '';
-            if(res.status=='success' && res.history) {
-                res.history.forEach(h => { tb.innerHTML += `<tr class="border-b"><td class="p-4 text-gray-500">${new Date(h[0]).toLocaleDateString()}</td><td class="p-4 font-bold">${h[1]}-${h[2]}</td><td class="p-4">${h[3]}<br><small class="text-gray-400">${h[4]}</small></td><td class="p-4 text-green-600 font-bold">₹${h[5]}</td><td class="p-4 text-right text-xs text-gray-400">${h[6]}</td></tr>`; });
-            }
+            doc.save(`Payslip_${e.personal.name}.pdf`);
+            await callAPI('SAVE_PAYSLIP',{month:m,year:y,empName:e.personal.name,empCode:e.code,netPay:netPay,user:currentUser.name});
         }
     </script>
 </body>
