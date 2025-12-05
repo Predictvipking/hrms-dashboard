@@ -55,7 +55,7 @@
 </head>
 <body>
 
-    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Connecting...</p></div>
+    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Connecting to Database...</p></div>
 
     <!-- 1. SETUP -->
     <div id="view-setup" class="hidden" style="display:flex; justify-content:center; align-items:center; height:100vh;">
@@ -110,6 +110,7 @@
                 <div class="grid-3">
                     <div class="card"><h3>Staff Count</h3><h1 id="statEmp" style="color:var(--accent)">0</h1></div>
                     <div class="card"><h3>Departments</h3><h1 id="statDept">0</h1></div>
+                    <div class="card"><h3>Status</h3><p style="color:green">● System Online</p></div>
                 </div>
             </div>
 
@@ -222,7 +223,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD EMPLOYEE (Fixed UI) -->
+    <!-- MODAL: ADD EMPLOYEE -->
     <div id="modal-emp" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:9999;">
         <div class="card" style="width:800px; max-height:95vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -250,7 +251,6 @@
                 </div>
 
                 <div class="sec-head">Salary Structure (Monthly Fixed)</div>
-                <!-- FIXED UI: LABELED INPUTS -->
                 <div class="grid-4">
                     <div class="input-group"><label>Basic (₹)</label><input type="number" id="salBasic" value="0"></div>
                     <div class="input-group"><label>DA (₹)</label><input type="number" id="salDA" value="0"></div>
@@ -269,23 +269,33 @@
     </div>
 
     <script>
-        // *** PASTE YOUR NEW APPS SCRIPT URL HERE ***
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1-jJ8y_jC470Lz33aV33a90_8j3e9b0_EXAMPLE_URL/exec"; 
+        // ======================================================
+        // IMPORTANT: PASTE YOUR NEW DEPLOYED URL HERE
+        // Make sure permissions are set to "Anyone"
+        // ======================================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyA3Py_jTgXcZbNzHUINoaMUEAc_Qu-yXR6VhbwlBJN3hxwBRxg1OAVXOp9RBP1uaaa/exec";
         
         let db = { depts: [], emps: [] };
         let currentUser = null;
 
-        // --- API ---
+        // --- CORE API FUNCTION (Improved for Stability) ---
         async function callAPI(action, payload={}) {
             document.getElementById('loader').classList.remove('hidden');
             try {
-                const res = await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, ...payload }) });
+                // We use 'no-cors' trick's brother: sending text/plain to avoid pre-flight
+                const res = await fetch(SCRIPT_URL, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+                    body: JSON.stringify({ action, ...payload }) 
+                });
                 const data = await res.json();
                 document.getElementById('loader').classList.add('hidden');
                 return data;
             } catch(e) { 
                 document.getElementById('loader').classList.add('hidden');
-                console.error(e); alert("Connection Error"); return {status:'error'}; 
+                console.error(e);
+                alert("Connection Error! \n\nPlease Check:\n1. Did you select 'Who has access: Anyone' during deploy?\n2. Is your internet active?");
+                return {status:'error'}; 
             }
         }
 
@@ -296,7 +306,8 @@
 
             const res = await callAPI('GET_ALL_DATA');
             if(res.status === 'success') {
-                db.depts = res.data.departments; db.emps = res.data.employees;
+                db.depts = res.data.departments || []; 
+                db.emps = res.data.employees || [];
                 if(!res.isSetup) showView('view-setup'); else showView('view-login');
             }
         };
@@ -362,7 +373,6 @@
             if(emp) {
                 const d = db.depts.find(x=>x.id==emp.deptId);
                 document.getElementById('psDisplayInfo').value = `${emp.personal.name} | ${emp.personal.desg} | ${d.entity}`;
-                // Fill Hidden
                 document.getElementById('fixBasic').value = emp.salary.basic;
                 document.getElementById('fixDA').value = emp.salary.da;
                 document.getElementById('fixTA').value = emp.salary.ta;
@@ -382,7 +392,7 @@
             const month = document.getElementById('psMonth').value;
             const year = document.getElementById('psYear').value;
 
-            // 1. Gather Figures
+            // Gather Figures
             const basic = parseFloat(document.getElementById('fixBasic').value)||0;
             const da = parseFloat(document.getElementById('fixDA').value)||0;
             const ta = parseFloat(document.getElementById('fixTA').value)||0;
@@ -396,7 +406,7 @@
             const food = parseFloat(document.getElementById('psDedFood').value)||0;
             const tax = parseFloat(document.getElementById('psDedTax').value)||0;
             const med = parseFloat(document.getElementById('psDedMed').value)||0;
-            const esi = parseFloat(document.getElementById('fixESI').value)||0; // Fixed from profile, or manual input could be added
+            const esi = parseFloat(document.getElementById('fixESI').value)||0; 
             const welfare = parseFloat(document.getElementById('psDedWelfare').value)||0;
             const adv = parseFloat(document.getElementById('psDedAdv').value)||0;
             const lop = parseFloat(document.getElementById('psDedLOP').value)||0;
@@ -404,11 +414,10 @@
             const totalDed = epf + mut + food + tax + med + esi + welfare + adv + lop;
             const netPay = gross - totalDed;
 
-            // 2. PDF GENERATION (Mirroring Image 2)
+            // PDF
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Header (Letterhead style)
             doc.setFontSize(20); doc.setFont("helvetica", "bold");
             doc.text(dept.entity.toUpperCase(), 105, 15, null, null, "center");
             doc.setFontSize(10); doc.setFont("helvetica", "normal");
@@ -418,7 +427,7 @@
             doc.setFontSize(12); doc.setFont("helvetica", "bold");
             doc.text(`Payslip for ${month} ${year}`, 105, 32, null, null, "center");
 
-            // Leave Summary & Attendance (Top Section)
+            // Leave Summary
             doc.setFontSize(10); doc.setFont("helvetica", "bold italic");
             doc.text("Leave Summary and Attendance Record:", 14, 42);
             
@@ -441,7 +450,7 @@
                 ]
             });
 
-            // MAIN TABLE (Earnings vs Deductions)
+            // Earnings Table
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 5,
                 head: [['Earnings', 'Amount', 'Deductions', 'Amount']],
@@ -463,27 +472,22 @@
                 columnStyles: { 0: { fontStyle: 'bold' }, 2: { fontStyle: 'bold' } }
             });
 
-            // Totals Row
+            // Totals
             let finalY = doc.lastAutoTable.finalY;
             doc.setLineWidth(0.1);
-            doc.rect(14, finalY, 182, 8); // Box around totals
+            doc.rect(14, finalY, 182, 8); 
             doc.setFont("helvetica", "bold");
             doc.text("Gross Earnings", 16, finalY + 5.5);
             doc.text(gross.toFixed(2) + '/-', 65, finalY + 5.5);
-            
-            // Vertical line split
             doc.line(105, finalY, 105, finalY + 8); 
-            
             doc.text("Total Deductions", 107, finalY + 5.5);
             doc.text(totalDed.toFixed(2) + '/-', 160, finalY + 5.5);
 
-            // NET PAY
             doc.setFontSize(12);
             doc.text(`NET PAY : ₹ ${netPay.toFixed(2)}/-`, 105, finalY + 18, null, null, "center");
 
             doc.save(`Payslip_${emp.personal.name}_${month}.pdf`);
 
-            // Save to Cloud
             await callAPI('SAVE_PAYSLIP', {month, year, empName:emp.personal.name, empCode:emp.code, department:dept.name, entity:dept.entity, netPay});
             alert("Payslip Generated!");
         }
