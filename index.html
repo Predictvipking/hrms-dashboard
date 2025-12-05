@@ -50,7 +50,7 @@
 </head>
 <body>
 
-    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Verifying Access...</p></div>
+    <div id="loader"><div class="spinner"></div><p style="margin-top:10px">Connecting to Cloud...</p></div>
 
     <!-- 1. SETUP (Only for First Time) -->
     <div id="view-setup" class="auth-container hidden">
@@ -119,7 +119,7 @@
                 <div class="grid-3">
                     <div class="card"><h3>Total Employees</h3><h1 id="statEmp">0</h1></div>
                     <div class="card"><h3>Departments</h3><h1 id="statDept">0</h1></div>
-                    <div class="card"><h3>System Status</h3><p style="color:green">Active</p></div>
+                    <div class="card"><h3>System Status</h3><p style="color:green">Active & Connected</p></div>
                 </div>
             </div>
 
@@ -237,24 +237,35 @@
     </div>
 
     <script>
-        // *** CONFIGURATION ***
-        const SCRIPT_URL = "YOUR_NEW_APPS_SCRIPT_URL_HERE"; // <--- Paste New URL Here
+        // -----------------------------------------------------------
+        // CONFIGURATION (YOUR NEW URL)
+        // -----------------------------------------------------------
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynR24i1LHj-fB_w51pdJ0OHGOQstq1xZbPBR4FkcVb1y5L7GXfAmKybQinrMK43Jin/exec";
         
         // State
         let db = { depts: [], emps: [] };
         let currentUser = null; // Stores {role, permissions}
 
-        // --- CORE FUNCTIONS ---
+        // --- CORE FUNCTIONS (FIXED FOR CORS) ---
         async function callAPI(action, payload={}) {
             document.getElementById('loader').classList.remove('hidden');
             try {
-                const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action, ...payload }) });
+                // FIXED: Using text/plain ensures simple POST request, bypassing strict CORS preflight
+                const res = await fetch(SCRIPT_URL, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action, ...payload }) 
+                });
+                
                 const data = await res.json();
                 document.getElementById('loader').classList.add('hidden');
                 return data;
             } catch(e) { 
                 document.getElementById('loader').classList.add('hidden');
-                alert("Connection Error"); return {status:'error'}; 
+                console.error(e);
+                // Usually means CORS block or Script Error
+                alert("Connection Failed! Please check if your Google Script is deployed as 'Anyone'."); 
+                return {status:'error'}; 
             }
         }
 
@@ -267,8 +278,8 @@
             // Check if System is Setup
             const res = await callAPI('GET_ALL_DATA');
             if(res.status === 'success') {
-                db.depts = res.data.departments;
-                db.emps = res.data.employees;
+                db.depts = res.data.departments || [];
+                db.emps = res.data.employees || [];
                 
                 if(!res.isSetup) {
                     showView('view-setup');
@@ -332,9 +343,6 @@
                     el.classList.remove('disabled');
                 }
             }
-            
-            // Hide "Admin Console" completely if not Super Admin? 
-            // User requested "Show but not clickable", so we keep it but the navTo function blocks it.
         }
 
         // --- SETUP ---
@@ -476,9 +484,23 @@
             
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text(`Payslip for ${emp.personal.name}`, 10, 10);
-            doc.text(`Net Pay: ${net}`, 10, 20);
-            doc.save('Payslip.pdf');
+            
+            // Header
+            doc.setFontSize(18); doc.setFont("helvetica", "bold");
+            doc.text(dept.entity.toUpperCase(), 105, 15, null, null, "center");
+            doc.setFontSize(10); doc.setFont("helvetica", "normal");
+            doc.line(10, 25, 200, 25);
+            doc.text("PAYSLIP", 105, 35, null, null, "center");
+
+            doc.autoTable({
+                startY: 40,
+                body: [
+                    ['Name', emp.personal.name, 'Designation', emp.personal.desg],
+                    ['Department', dept.name, 'Net Pay', net.toFixed(2)]
+                ]
+            });
+            
+            doc.save(`Payslip_${emp.personal.name}.pdf`);
             
             await callAPI('SAVE_PAYSLIP', {month:document.getElementById('psMonth').value, year:document.getElementById('psYear').value, empName:emp.personal.name, empCode:emp.code, department:dept.name, entity:dept.entity, netPay:net});
             alert('Payslip Saved');
