@@ -6,41 +6,28 @@
     <title>Enterprise HRMS AI</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png">
     
-    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: 'var(--color-primary)',
-                        secondary: 'var(--color-secondary)',
-                        surface: 'var(--color-surface)'
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { primary: 'var(--color-primary)', secondary: 'var(--color-secondary)', surface: 'var(--color-surface)' } } } }
     </script>
 
     <style>
-        /* Theme Variables */
         :root { --color-primary: #2563eb; --color-secondary: #1e293b; --color-surface: #f8fafc; }
         .theme-blue { --color-primary: #2563eb; --color-secondary: #1e293b; }
         .theme-purple { --color-primary: #7c3aed; --color-secondary: #2e1065; }
         .theme-teal { --color-primary: #0d9488; --color-secondary: #134e4a; }
         .theme-dark { --color-primary: #6366f1; --color-secondary: #0f172a; --color-surface: #1e293b; background-color: #0f172a; color: #e2e8f0; }
         .theme-dark .bg-white { background-color: #1e293b; color: #e2e8f0; border-color: #334155; }
-        .theme-dark input, .theme-dark select { background-color: #334155; border-color: #475569; color: white; }
-
-        /* Helpers */
+        .theme-dark input, .theme-dark select, .theme-dark textarea { background-color: #334155; border-color: #475569; color: white; }
         .sidebar-expanded { width: 16rem; }
         .sidebar-collapsed { width: 5rem; }
         .sidebar-collapsed span.label { display: none; }
         .sidebar-collapsed .nav-item { justify-content: center; }
+        .sidebar-collapsed .nav-item:hover::after { content: attr(data-tooltip); position: absolute; left: 4.5rem; background: #334155; color: #fff; padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 50; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .toggle-checkbox:checked { right: 0; border-color: var(--color-primary); }
         .toggle-checkbox:checked + .toggle-label { background-color: var(--color-primary); }
@@ -48,69 +35,42 @@
 </head>
 <body class="bg-surface text-gray-800 font-sans antialiased transition-colors duration-300">
 
-    <!-- LOADER -->
     <div id="loader" class="fixed inset-0 bg-white/95 z-[9999] flex flex-col items-center justify-center">
         <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         <p class="mt-4 text-gray-500 font-bold animate-pulse">Establishing Secure Connection...</p>
     </div>
 
-    <!-- AUTH SECTION (Split Screen) -->
+    <!-- AUTH -->
     <div id="auth-wrapper" class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900">
-        <!-- Decoration -->
         <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-80"></div>
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
 
-        <!-- LOGIN CARD -->
+        <!-- LOGIN -->
         <div id="view-login" class="hidden w-full max-w-4xl bg-white rounded-2xl shadow-2xl relative z-10 flex overflow-hidden min-h-[500px]">
-            <!-- Left: Brand -->
             <div class="hidden md:flex w-1/2 bg-gradient-to-br from-primary to-secondary p-12 flex-col justify-between text-white">
+                <div><h1 class="text-4xl font-bold mb-2">HRMS Pro</h1><p class="opacity-80">Enterprise Management System</p></div>
                 <div>
-                    <h1 class="text-4xl font-bold mb-2">HRMS Pro</h1>
-                    <p class="opacity-80">Enterprise Management System</p>
-                </div>
-                <div>
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><i class="fa-solid fa-users text-2xl"></i></div>
-                        <div><h3 class="font-bold">Staff Management</h3><p class="text-xs opacity-70">Complete lifecycle</p></div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file-invoice text-2xl"></i></div>
-                        <div><h3 class="font-bold">Automated Payroll</h3><p class="text-xs opacity-70">One-click processing</p></div>
-                    </div>
+                    <div class="flex items-center gap-4 mb-4"><div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><i class="fa-solid fa-users text-2xl"></i></div><div><h3 class="font-bold">Staff Management</h3></div></div>
+                    <div class="flex items-center gap-4"><div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file-invoice text-2xl"></i></div><div><h3 class="font-bold">Automated Payroll</h3></div></div>
                 </div>
                 <p class="text-xs opacity-50">© 2025 Enterprise Solutions</p>
             </div>
-
-            <!-- Right: Form -->
             <div class="w-full md:w-1/2 p-12 bg-white relative">
-                <!-- Type Tabs -->
                 <div class="flex mb-8 bg-gray-100 rounded-lg p-1">
                     <button onclick="switchLogin('admin')" id="tab-admin" class="w-1/2 py-2 rounded-md text-sm font-bold bg-white shadow text-primary transition">Admin</button>
                     <button onclick="switchLogin('employee')" id="tab-employee" class="w-1/2 py-2 rounded-md text-sm font-bold text-gray-500 hover:bg-white/50 transition">Employee</button>
                 </div>
-
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800" id="loginTitle">Admin Portal</h2>
-                    <p class="text-gray-400 text-sm">Sign in to your account</p>
-                </div>
-
+                <div class="text-center mb-8"><h2 class="text-2xl font-bold text-gray-800" id="loginTitle">Admin Portal</h2></div>
                 <form id="loginForm" class="space-y-6">
                     <input type="hidden" id="loginType" value="ADMIN">
-                    <div class="relative">
-                        <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-gray-400"></i>
-                        <input id="loginId" placeholder="Email Address" required class="pl-12 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition">
-                    </div>
-                    <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="password" id="loginPass" placeholder="Password" required class="pl-12 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition">
-                        <i class="fa-solid fa-eye absolute right-4 top-3.5 text-gray-400 cursor-pointer hover:text-primary transition" onclick="togglePass('loginPass')"></i>
-                    </div>
+                    <div class="relative"><i class="fa-solid fa-envelope absolute left-4 top-3.5 text-gray-400"></i><input id="loginId" placeholder="Email Address" required class="pl-12 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"></div>
+                    <div class="relative"><i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400"></i><input type="password" id="loginPass" placeholder="Password" required class="pl-12 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"><i class="fa-solid fa-eye absolute right-4 top-3.5 text-gray-400 cursor-pointer hover:text-primary transition" onclick="togglePass('loginPass')"></i></div>
                     <button class="w-full py-3 bg-primary text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition transform hover:-translate-y-0.5">Secure Login</button>
                 </form>
             </div>
         </div>
 
-        <!-- SETUP (Fallback) -->
+        <!-- SETUP -->
         <div id="view-setup" class="hidden w-full max-w-md bg-white rounded-2xl shadow-2xl relative z-10 p-8">
             <h1 class="text-2xl font-bold text-center text-primary mb-6">Initial Setup</h1>
             <form id="setupForm" class="space-y-4">
@@ -123,43 +83,32 @@
         </div>
     </div>
 
-    <!-- DASHBOARD LAYOUT -->
+    <!-- DASHBOARD -->
     <div id="view-dashboard" class="hidden flex h-screen overflow-hidden">
-        <!-- Sidebar -->
         <aside id="sidebar" class="sidebar-expanded bg-secondary text-white flex flex-col shadow-2xl transition-all duration-300 relative z-20">
             <div class="p-6 border-b border-gray-700 font-bold text-xl flex items-center gap-3 overflow-hidden whitespace-nowrap">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"><i class="fa-solid fa-layer-group"></i></div>
-                <span class="label">HRMS AI</span>
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"><i class="fa-solid fa-layer-group"></i></div><span class="label">HRMS AI</span>
             </div>
-            
             <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto no-scrollbar">
-                <a onclick="navTo('tab-home')" id="nav-home" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer bg-white/10 text-white shadow-inner"><i class="fa-solid fa-chart-pie w-5"></i> <span class="label ml-3 font-medium">Dashboard</span></a>
+                <a onclick="navTo('tab-home')" id="nav-home" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer bg-white/10 text-white shadow-inner" data-tooltip="Dashboard"><i class="fa-solid fa-chart-pie w-5"></i> <span class="label ml-3 font-medium">Dashboard</span></a>
                 <div id="admin-links">
-                    <a onclick="navTo('tab-emp')" id="nav-emp" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition"><i class="fa-solid fa-users w-5"></i> <span class="label ml-3">Employees</span></a>
-                    <a onclick="navTo('tab-depts')" id="nav-depts" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition"><i class="fa-solid fa-building w-5"></i> <span class="label ml-3">Departments</span></a>
-                    <a onclick="navTo('tab-pay')" id="nav-pay" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition"><i class="fa-solid fa-wand-magic-sparkles w-5"></i> <span class="label ml-3">Payroll Gen</span></a>
-                    <a onclick="navTo('tab-users')" id="nav-users" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition"><i class="fa-solid fa-users-gear w-5"></i> <span class="label ml-3">Admin Console</span></a>
+                    <a onclick="navTo('tab-emp')" id="nav-emp" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="Employees"><i class="fa-solid fa-users w-5"></i> <span class="label ml-3">Employees</span></a>
+                    <a onclick="navTo('tab-depts')" id="nav-depts" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="Departments"><i class="fa-solid fa-building w-5"></i> <span class="label ml-3">Departments</span></a>
+                    <a onclick="navTo('tab-desg')" id="nav-desg" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="Designations"><i class="fa-solid fa-briefcase w-5"></i> <span class="label ml-3">Designations</span></a>
+                    <a onclick="navTo('tab-pay')" id="nav-pay" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="Payroll"><i class="fa-solid fa-wand-magic-sparkles w-5"></i> <span class="label ml-3">Payroll Gen</span></a>
+                    <a onclick="navTo('tab-users')" id="nav-users" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="Admin Console"><i class="fa-solid fa-users-gear w-5"></i> <span class="label ml-3">Admin Console</span></a>
                 </div>
-                <a onclick="navTo('tab-history')" id="nav-history" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition"><i class="fa-solid fa-clock-rotate-left w-5"></i> <span class="label ml-3">History</span></a>
+                <a onclick="navTo('tab-crm')" id="nav-crm" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="CRM & Tools"><i class="fa-solid fa-briefcase w-5"></i> <span class="label ml-3">CRM & Tools</span></a>
+                <a onclick="navTo('tab-history')" id="nav-history" class="nav-item flex items-center px-4 py-3 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 transition" data-tooltip="History"><i class="fa-solid fa-clock-rotate-left w-5"></i> <span class="label ml-3">History</span></a>
             </nav>
             <div class="p-4 border-t border-gray-700"><button onclick="location.reload()" class="w-full py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2"><i class="fa-solid fa-power-off"></i> <span class="label">Logout</span></button></div>
         </aside>
 
-        <!-- Main -->
         <div class="flex-1 flex flex-col overflow-hidden relative">
             <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center gap-4"><button onclick="toggleSidebar()" class="text-gray-500 hover:text-primary text-xl"><i class="fa-solid fa-bars"></i></button><h2 class="text-xl font-bold hidden md:block">Overview</h2></div>
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-primary text-xl"><i class="fa-solid fa-bars"></i></button>
-                    <h2 class="text-xl font-bold hidden md:block">Overview</h2>
-                </div>
-                <div class="flex items-center gap-4">
-                    <!-- Theme Picker -->
-                    <div class="flex bg-gray-100 rounded-full p-1 border">
-                        <button onclick="setTheme('theme-blue')" class="w-5 h-5 rounded-full bg-blue-600 m-1"></button>
-                        <button onclick="setTheme('theme-purple')" class="w-5 h-5 rounded-full bg-purple-600 m-1"></button>
-                        <button onclick="setTheme('theme-teal')" class="w-5 h-5 rounded-full bg-teal-600 m-1"></button>
-                        <button onclick="setTheme('theme-dark')" class="w-5 h-5 rounded-full bg-gray-800 m-1"></button>
-                    </div>
+                    <div class="flex bg-gray-100 rounded-full p-1 border"><button onclick="setTheme('theme-blue')" class="w-5 h-5 rounded-full bg-blue-600 m-1"></button><button onclick="setTheme('theme-purple')" class="w-5 h-5 rounded-full bg-purple-600 m-1"></button><button onclick="setTheme('theme-teal')" class="w-5 h-5 rounded-full bg-teal-600 m-1"></button><button onclick="setTheme('theme-dark')" class="w-5 h-5 rounded-full bg-gray-800 m-1"></button></div>
                     <div class="text-right hidden sm:block"><p id="userDisplay" class="text-sm font-bold">User</p><span id="roleDisplay" class="text-xs bg-primary/10 text-primary px-2 rounded-full font-bold">Role</span></div>
                 </div>
             </header>
@@ -167,10 +116,7 @@
             <main class="flex-1 overflow-y-auto p-6">
                 <!-- HOME -->
                 <div id="tab-home" class="space-y-6">
-                    <div class="bg-gradient-to-r from-primary to-blue-400 rounded-2xl p-6 text-white shadow-lg flex justify-between items-center">
-                        <div><h3 class="text-lg font-bold"><i class="fa-solid fa-robot mr-2"></i> AI Analyst</h3><p id="aiText" class="text-sm opacity-90 mt-1">System ready.</p></div>
-                        <i class="fa-solid fa-chart-simple text-4xl opacity-20"></i>
-                    </div>
+                    <div class="bg-gradient-to-r from-primary to-blue-400 rounded-2xl p-6 text-white shadow-lg flex justify-between items-center"><div><h3 class="text-lg font-bold"><i class="fa-solid fa-robot mr-2"></i> AI Analyst</h3><p id="aiText" class="text-sm opacity-90 mt-1">System ready.</p></div><i class="fa-solid fa-chart-simple text-4xl opacity-20"></i></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><p class="text-xs font-bold text-gray-500 uppercase">Staff</p><h3 id="statEmp" class="text-3xl font-bold mt-2">0</h3></div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><p class="text-xs font-bold text-gray-500 uppercase">Depts</p><h3 id="statDept" class="text-3xl font-bold mt-2">0</h3></div>
@@ -178,68 +124,75 @@
                     </div>
                 </div>
 
+                <!-- CRM & TOOLS (NEW) -->
+                <div id="tab-crm" class="hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        <!-- Quick Notes -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col h-full">
+                            <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-sticky-note text-yellow-500"></i> Quick Notes</h3>
+                            <div id="crmNotesList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1"></div>
+                            <div class="mt-auto">
+                                <textarea id="newNoteContent" placeholder="Write a note..." class="w-full border rounded p-2 text-sm h-20 mb-2"></textarea>
+                                <button onclick="addCRMItem('NOTE')" class="w-full bg-primary text-white py-2 rounded text-sm font-bold">Save Note</button>
+                            </div>
+                        </div>
+                        <!-- Important Links -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col h-full">
+                            <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Shortcuts</h3>
+                            <div id="crmLinksList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1"></div>
+                            <div class="mt-auto space-y-2">
+                                <input id="newLinkTitle" placeholder="Website Name" class="w-full border rounded p-2 text-sm">
+                                <input id="newLinkUrl" placeholder="URL (https://...)" class="w-full border rounded p-2 text-sm">
+                                <button onclick="addCRMItem('LINK')" class="w-full bg-primary text-white py-2 rounded text-sm font-bold">Save Link</button>
+                            </div>
+                        </div>
+                        <!-- Utility Calculator -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                            <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-calculator text-green-500"></i> Utility Calculator</h3>
+                            <div class="bg-gray-50 p-4 rounded-xl border">
+                                <input id="calcDisplay" class="w-full bg-white text-right text-2xl font-mono p-3 rounded border mb-4" readonly value="0">
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button onclick="calcInput('7')" class="p-3 bg-white rounded shadow hover:bg-gray-50">7</button><button onclick="calcInput('8')" class="p-3 bg-white rounded shadow hover:bg-gray-50">8</button><button onclick="calcInput('9')" class="p-3 bg-white rounded shadow hover:bg-gray-50">9</button><button onclick="calcInput('/')" class="p-3 bg-blue-50 text-blue-600 rounded shadow">/</button>
+                                    <button onclick="calcInput('4')" class="p-3 bg-white rounded shadow hover:bg-gray-50">4</button><button onclick="calcInput('5')" class="p-3 bg-white rounded shadow hover:bg-gray-50">5</button><button onclick="calcInput('6')" class="p-3 bg-white rounded shadow hover:bg-gray-50">6</button><button onclick="calcInput('*')" class="p-3 bg-blue-50 text-blue-600 rounded shadow">*</button>
+                                    <button onclick="calcInput('1')" class="p-3 bg-white rounded shadow hover:bg-gray-50">1</button><button onclick="calcInput('2')" class="p-3 bg-white rounded shadow hover:bg-gray-50">2</button><button onclick="calcInput('3')" class="p-3 bg-white rounded shadow hover:bg-gray-50">3</button><button onclick="calcInput('-')" class="p-3 bg-blue-50 text-blue-600 rounded shadow">-</button>
+                                    <button onclick="calcInput('C')" class="p-3 bg-red-50 text-red-500 rounded shadow">C</button><button onclick="calcInput('0')" class="p-3 bg-white rounded shadow hover:bg-gray-50">0</button><button onclick="calcResult()" class="p-3 bg-primary text-white rounded shadow">=</button><button onclick="calcInput('+')" class="p-3 bg-blue-50 text-blue-600 rounded shadow">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- PAYSLIP GENERATOR -->
                 <div id="tab-pay" class="hidden">
                     <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                         <h3 class="text-xl font-bold mb-6 border-b pb-4 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Payroll Wizard</h3>
-                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div><label class="text-xs font-bold text-gray-500 uppercase">Select Employee</label><select id="psEmpSelect" onchange="autoFetchEmp()" class="w-full border rounded-lg p-3 mt-1 bg-gray-50 focus:ring-2 focus:ring-primary outline-none"><option>-- Search --</option></select></div>
                             <div><label class="text-xs font-bold text-gray-500 uppercase">Selected</label><input id="psDisplayInfo" readonly class="w-full border rounded-lg p-3 mt-1 bg-gray-100 text-gray-500"></div>
                         </div>
-
                         <div class="grid grid-cols-3 gap-4 mb-6">
                             <div><label class="text-xs font-bold text-gray-500">Month</label><select id="psMonth" class="w-full border rounded-lg p-2"><option>January</option><option>February</option><option>March</option><option>October</option><option>November</option><option>December</option></select></div>
                             <div><label class="text-xs font-bold text-gray-500">Year</label><select id="psYear" class="w-full border rounded-lg p-2"></select></div>
                             <div><label class="text-xs font-bold text-gray-500">Days</label><input type="number" id="psTotalDays" value="30" class="w-full border rounded-lg p-2"></div>
                         </div>
-
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                                <h4 class="text-xs font-bold text-blue-700 uppercase mb-3">Attendance</h4>
-                                <div class="grid grid-cols-4 gap-2 text-sm text-center">
-                                    <div><label>CL</label><input id="psCL" type="number" value="0" class="w-full border rounded p-1 text-center"></div>
-                                    <div><label>SL</label><input id="psSL" type="number" value="0" class="w-full border rounded p-1 text-center"></div>
-                                    <div><label>AL</label><input id="psAL" type="number" value="0" class="w-full border rounded p-1 text-center"></div>
-                                    <div><label>PayDays</label><input id="psPayDays" type="number" value="30" class="w-full border rounded p-1 text-center font-bold"></div>
-                                    <input type="hidden" id="psPresent" value="30"><input type="hidden" id="psAbsent" value="0">
-                                </div>
-                            </div>
-                            <div class="bg-red-50/50 p-4 rounded-xl border border-red-100">
-                                <h4 class="text-xs font-bold text-red-700 uppercase mb-3">Deductions</h4>
-                                <div class="grid grid-cols-3 gap-2 text-sm">
-                                    <div><label>Food</label><input id="psDedFood" type="number" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>Loan</label><input id="psDedAdv" type="number" value="0" class="w-full border rounded p-1"></div>
-                                    <div><label>MUT</label><input id="psDedMUT" type="number" value="0" class="w-full border rounded p-1"></div>
-                                    <input type="hidden" id="psDedTax" value="0"><input type="hidden" id="psDedWelfare" value="0"><input type="hidden" id="psDedMed" value="0"><input type="hidden" id="psDedLOP" value="0">
-                                </div>
-                            </div>
+                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100"><h4 class="text-xs font-bold text-blue-700 uppercase mb-3">Attendance</h4><div class="grid grid-cols-4 gap-2 text-sm text-center"><div><label>CL</label><input id="psCL" type="number" value="0" class="w-full border rounded p-1 text-center"></div><div><label>SL</label><input id="psSL" type="number" value="0" class="w-full border rounded p-1 text-center"></div><div><label>AL</label><input id="psAL" type="number" value="0" class="w-full border rounded p-1 text-center"></div><div><label>PayDays</label><input id="psPayDays" type="number" value="30" class="w-full border rounded p-1 text-center font-bold"></div><input type="hidden" id="psPresent" value="30"><input type="hidden" id="psAbsent" value="0"></div></div>
+                            <div class="bg-red-50/50 p-4 rounded-xl border border-red-100"><h4 class="text-xs font-bold text-red-700 uppercase mb-3">Deductions</h4><div class="grid grid-cols-3 gap-2 text-sm"><div><label>Food</label><input id="psDedFood" type="number" value="0" class="w-full border rounded p-1"></div><div><label>Loan</label><input id="psDedAdv" type="number" value="0" class="w-full border rounded p-1"></div><div><label>MUT</label><input id="psDedMUT" type="number" value="0" class="w-full border rounded p-1"></div><input type="hidden" id="psDedTax" value="0"><input type="hidden" id="psDedWelfare" value="0"><input type="hidden" id="psDedMed" value="0"><input type="hidden" id="psDedLOP" value="0"></div></div>
                         </div>
-                        
                         <input type="hidden" id="fixBasic"><input type="hidden" id="fixDA"><input type="hidden" id="fixTA"><input type="hidden" id="fixHRA"><input type="hidden" id="fixOther"><input type="hidden" id="fixEPF"><input type="hidden" id="fixESI">
-
                         <div class="flex gap-3">
-                            <button onclick="generatePDF('download')" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition flex justify-center items-center gap-2">
-                                <i class="fa-solid fa-download"></i> Download PDF
-                            </button>
-                            <button onclick="generatePDF('email')" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg hover:brightness-110 transition flex justify-center items-center gap-2">
-                                <i class="fa-solid fa-envelope"></i> Email PDF
-                            </button>
-                            <button onclick="generatePDF('whatsapp')" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:brightness-110 transition flex justify-center items-center gap-2">
-                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                            </button>
+                            <button onclick="generatePDF('download')" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition flex justify-center items-center gap-2"><i class="fa-solid fa-download"></i> Download PDF</button>
+                            <button onclick="generatePDF('email')" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg hover:brightness-110 transition flex justify-center items-center gap-2"><i class="fa-solid fa-envelope"></i> Email PDF</button>
+                            <button onclick="generatePDF('whatsapp')" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:brightness-110 transition flex justify-center items-center gap-2"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- HISTORY -->
+                <!-- OTHER TABS (Simplified) -->
                 <div id="tab-history" class="hidden"><h3 class="text-xl font-bold mb-4">Records</h3><div class="bg-white rounded-2xl shadow-sm border overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50 uppercase font-bold text-gray-500"><tr><th class="p-4">Date</th><th class="p-4">Month</th><th class="p-4">Employee</th><th class="p-4">Net Pay</th><th class="p-4 text-right">By</th></tr></thead><tbody id="historyTableBody" class="divide-y"></tbody></table></div></div>
-
-                <!-- EMPLOYEES & DEPARTMENTS & ADMIN CONSOLE (Simplified for brevity) -->
                 <div id="tab-emp" class="hidden"><div class="flex justify-between mb-4"><h3 class="text-xl font-bold">Staff</h3><button onclick="openEmpModal()" class="bg-primary text-white px-4 py-2 rounded-lg shadow">+ Add</button></div><div class="bg-white rounded-2xl shadow-sm border overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50"><tr><th class="p-4">Code</th><th class="p-4">Name</th><th class="p-4">Dept</th><th class="p-4 text-right">Act</th></tr></thead><tbody id="empTableBody" class="divide-y"></tbody></table></div></div>
-                
                 <div id="tab-depts" class="hidden"><div class="grid grid-cols-3 gap-6"><div class="bg-white p-6 rounded-2xl border col-span-1"><h3 class="font-bold mb-4">Add Dept</h3><form id="deptForm" class="space-y-3"><input id="newEntity" placeholder="Entity" required class="w-full border rounded p-2"><input id="newDept" placeholder="Dept Name" required class="w-full border rounded p-2"><textarea id="newDeptAddr" placeholder="Address" class="w-full border rounded p-2"></textarea><button class="w-full bg-primary text-white py-2 rounded">Save</button></form></div><div class="bg-white p-6 rounded-2xl border col-span-2"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Entity</th><th class="p-3">Dept</th><th class="text-right p-3">Act</th></tr></thead><tbody id="deptTableBody"></tbody></table></div></div></div>
-                
+                <div id="tab-desg" class="hidden"><div class="grid grid-cols-3 gap-6"><div class="bg-white p-6 rounded-2xl border col-span-1"><h3 class="font-bold mb-4">Add Designation</h3><form id="desgForm" class="space-y-3"><input id="newDesgTitle" placeholder="Job Title" required class="w-full border rounded p-2"><button class="w-full bg-primary text-white py-2 rounded">Save</button></form></div><div class="bg-white p-6 rounded-2xl border col-span-2"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Title</th><th class="text-right p-3">Act</th></tr></thead><tbody id="desgTableBody"></tbody></table></div></div></div>
                 <div id="tab-users" class="hidden"><div class="grid grid-cols-3 gap-6"><div class="bg-white p-6 rounded-2xl border col-span-1"><h3 class="font-bold mb-4">Manage Access</h3><form id="userForm" class="space-y-3"><input id="newUserName" placeholder="Name" required class="w-full border rounded p-2"><input type="email" id="newUserEmail" placeholder="Email" required class="w-full border rounded p-2"><input type="password" id="newUserPass" placeholder="Password" required class="w-full border rounded p-2"><select id="newUserRole" class="w-full border rounded p-2 bg-white"><option value="HR">HR</option><option value="MANAGER">Manager</option></select><div class="bg-gray-50 p-2 rounded text-xs grid grid-cols-2 gap-2"><label><input type="checkbox" id="perm_dept"> Depts</label><label><input type="checkbox" id="perm_emp"> Staff</label><label><input type="checkbox" id="perm_pay"> Payroll</label><label><input type="checkbox" id="perm_hist"> History</label></div><button class="w-full bg-primary text-white py-2 rounded">Create User</button></form></div><div class="bg-white p-6 rounded-2xl border col-span-2"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">User</th><th class="p-3">Role</th><th class="p-3">Device</th><th class="text-right p-3">Act</th></tr></thead><tbody id="userTableBody"></tbody></table></div></div></div>
             </main>
         </div>
@@ -254,7 +207,7 @@
                 <div class="grid md:grid-cols-3 gap-6">
                     <div class="relative bg-gray-50 p-2 rounded border"><div class="flex justify-between items-center mb-1"><label class="text-xs font-bold text-gray-500">CODE</label><label class="flex items-center"><input type="checkbox" id="codeToggle" class="mr-1 toggle-checkbox" onchange="toggleCodeInput()"><span class="text-xs">Manual</span></label></div><input id="empCode" class="w-full border rounded p-1.5 bg-blue-50 text-blue-700 font-bold" readonly value="Auto"></div>
                     <div><label class="text-xs font-bold">Name</label><input id="empName" required class="w-full mt-1 border rounded p-2"></div>
-                    <div><label class="text-xs font-bold">Designation</label><select id="empDesg" required class="w-full mt-1 border rounded p-2 bg-white"></select></div>
+                    <div><label class="text-xs font-bold">Designation</label><select id="empDesgSelect" required class="w-full mt-1 border rounded p-2 bg-white"></select></div>
                     <div><label class="text-xs font-bold">Department</label><select id="empDeptSelect" required class="w-full mt-1 border rounded p-2 bg-white"></select></div>
                     <div><label class="text-xs font-bold">DOJ</label><input type="date" id="empDOJ" required class="w-full mt-1 border rounded p-2"></div>
                     <div><label class="text-xs font-bold">Status</label><select id="empStatus" class="w-full mt-1 border rounded p-2"><option>FullTime</option><option>Contract</option></select></div>
@@ -263,8 +216,11 @@
                     <div><label class="text-xs font-bold text-yellow-800">Login Email</label><input type="email" id="empEmail" class="w-full border rounded p-1 text-sm bg-white"></div>
                     <div><label class="text-xs font-bold text-yellow-800">Password</label><input type="text" id="empPass" value="123456" class="w-full border rounded p-1 text-sm bg-white"></div>
                 </div>
-                <div class="grid grid-cols-3 gap-6 border-t pt-4"><div><label class="text-xs font-bold">Bank</label><input id="empBank" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">A/C No</label><input id="empAC" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">IFSC</label><input id="empIFSC" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">Aadhaar</label><input id="empAadhaar" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">UAN</label><input id="empUAN" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">ESI</label><input id="empESI" class="w-full border rounded p-2"></div></div>
-                <div class="bg-gray-50 p-4 rounded border"><h4 class="text-sm font-bold text-green-600 mb-2">Salary</h4><div class="grid grid-cols-4 gap-4"><div><label class="text-xs">Basic</label><input type="number" id="salBasic" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs">DA</label><input type="number" id="salDA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs">HRA</label><input type="number" id="salHRA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs">Other</label><input type="number" id="salOther" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-red-500">EPF</label><input type="number" id="salPF" value="0" class="w-full border rounded p-2 border-red-200"></div><div><label class="text-xs text-red-500">ESI</label><input type="number" id="salESIFix" value="0" class="w-full border rounded p-2 border-red-200"></div><input type="hidden" id="salTA" value="0"></div></div>
+                <div class="grid grid-cols-3 gap-6 border-t pt-4"><div><label class="text-xs font-bold">Bank</label><input id="empBank" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">Account Number</label><input id="empAC" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">IFSC</label><input id="empIFSC" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">Aadhaar</label><input id="empAadhaar" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">UAN</label><input id="empUAN" class="w-full border rounded p-2"></div><div><label class="text-xs font-bold">ESI</label><input id="empESI" class="w-full border rounded p-2"></div></div>
+                <div class="bg-gray-50 p-4 rounded border"><h4 class="text-sm font-bold text-green-600 mb-2">Salary</h4><div class="grid grid-cols-4 gap-4">
+                    <div><label class="text-xs">Basic</label><input type="number" id="salBasic" value="0" class="w-full border rounded p-2" oninput="calcEPF()"></div>
+                    <div><label class="text-xs">DA</label><input type="number" id="salDA" value="0" class="w-full border rounded p-2" oninput="calcEPF()"></div>
+                    <div><label class="text-xs">HRA</label><input type="number" id="salHRA" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs">Other</label><input type="number" id="salOther" value="0" class="w-full border rounded p-2"></div><div><label class="text-xs text-red-500">EPF (Auto)</label><input type="number" id="salPF" value="0" class="w-full border rounded p-2 border-red-200" readonly></div><div><label class="text-xs text-red-500">ESI</label><input type="number" id="salESIFix" value="0" class="w-full border rounded p-2 border-red-200"></div><input type="hidden" id="salTA" value="0"></div></div>
                 <div class="flex justify-end gap-3 pt-2"><button type="button" onclick="document.getElementById('modal-emp').classList.add('hidden')" class="px-6 py-2 rounded border font-bold">Cancel</button><button class="px-8 py-2 bg-primary text-white rounded font-bold">Save</button></div>
             </form>
         </div>
@@ -272,9 +228,9 @@
 
     <script>
         // ============================================
-        // PASTE YOUR SCRIPT URL HERE
+        // *** PASTE YOUR NEW SCRIPT URL HERE ***
         // ============================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwt_gnmQRfy1Kgga9ersuvJVWdv2ycKdxbYvIBONVmjfpEaFs8COPBwwqNhsTtXO1eq/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2vAD28kNnjdiwhtMFk0h3DcHjv416nGVC1XQOrIlpeK1DQs_1BN-aoXkkoQbmQtm_/exec"; 
         
         let db = { depts: [], emps: [], desgs: [] };
         let currentUser = null;
@@ -290,6 +246,19 @@
             else { btnE.className="w-1/2 py-2 rounded-md text-sm font-bold bg-white shadow text-primary transition"; btnA.className="w-1/2 py-2 rounded-md text-sm font-bold text-gray-500 hover:bg-white/50 transition"; document.getElementById('loginTitle').innerText="Employee Portal"; document.getElementById('loginId').placeholder="Employee Code"; }
         }
         function toggleCodeInput() { const m=document.getElementById('codeToggle').checked; const i=document.getElementById('empCode'); if(m){i.readOnly=false;i.value='';i.className="w-full border rounded p-1.5 bg-green-50 text-green-700 font-bold";}else{i.readOnly=true;i.value='Auto';i.className="w-full border rounded p-1.5 bg-blue-50 text-blue-700 font-bold";} }
+
+        function calcEPF() {
+            const basic = parseFloat(document.getElementById('salBasic').value) || 0;
+            const da = parseFloat(document.getElementById('salDA').value) || 0;
+            let epfCalc = (basic + da) * 0.12;
+            let finalEPF = epfCalc > 1800 ? 1800 : Math.round(epfCalc);
+            document.getElementById('salPF').value = finalEPF;
+        }
+
+        // CALCULATOR LOGIC
+        let calcVal = "0";
+        function calcInput(v) { if(v==='C'){calcVal="0";} else { if(calcVal==="0" && "+-*/".indexOf(v)===-1) calcVal=v; else calcVal+=v; } document.getElementById('calcDisplay').value = calcVal; }
+        function calcResult() { try { document.getElementById('calcDisplay').value = eval(calcVal); calcVal = document.getElementById('calcDisplay').value; } catch(e){ document.getElementById('calcDisplay').value = "Error"; calcVal="0"; } }
 
         // API
         async function callAPI(a, p={}) {
@@ -311,29 +280,26 @@
 
         // Navigation
         function navTo(id) {
-            const pm={'tab-users':'manage_users','tab-depts':'manage_dept','tab-emp':'manage_emp','tab-pay':'generate_payslip','tab-history':'view_history'};
+            const pm={'tab-users':'manage_users','tab-depts':'manage_dept','tab-emp':'manage_emp','tab-pay':'generate_payslip','tab-history':'view_history','tab-crm':'view_crm'};
             if(currentUser.role!=='SUPER_ADMIN'&&pm[id]&&!currentUser.permissions[pm[id]]){alert("Access Denied");return;}
             document.querySelectorAll('#view-dashboard main > div').forEach(e=>e.classList.add('hidden')); document.getElementById(id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('bg-white/10','text-white','shadow-inner');e.classList.add('text-gray-400')});
             document.getElementById('nav-'+id.split('-')[1]).classList.add('bg-white/10','text-white','shadow-inner');
-            if(id=='tab-emp')renderEmps(); if(id=='tab-depts')renderDepts(); if(id=='tab-pay')fillEmpSelect(); if(id=='tab-history')loadHistory(); if(id=='tab-users')loadUsers();
+            if(id=='tab-emp')renderEmps(); if(id=='tab-depts')renderDepts(); if(id=='tab-desg')renderDesgs(); if(id=='tab-pay')fillEmpSelect(); if(id=='tab-history')loadHistory(); if(id=='tab-users')loadUsers(); if(id=='tab-crm')loadCRM();
         }
 
-        // Auth
+        // Auth (WITH TRIM FIX)
         document.getElementById('setupForm').onsubmit = async (e) => { e.preventDefault(); await callAPI('SETUP_ORG', { name:document.getElementById('setupOrg').value, address:document.getElementById('setupAddr').value, email:document.getElementById('setupEmail').value, password:document.getElementById('setupPass').value }); location.reload(); };
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            const res = await callAPI('LOGIN', { type:document.getElementById('loginType').value, id:document.getElementById('loginId').value, password:document.getElementById('loginPass').value, ip:'Online', device:navigator.platform });
+            const res = await callAPI('LOGIN', { type:document.getElementById('loginType').value, loginId:document.getElementById('loginId').value.trim(), password:document.getElementById('loginPass').value.trim(), ip:'Online', device:navigator.platform });
             if(res.status === 'success') {
                 currentUser = res.user;
                 document.getElementById('auth-wrapper').classList.add('hidden');
-                
                 if(currentUser.role==='EMPLOYEE') {
-                    // Load Employee Dashboard (Reusing same dashboard but hiding admin links)
                     document.getElementById('view-dashboard').classList.remove('hidden');
-                    document.getElementById('admin-links').classList.add('hidden'); // Hide Admin Links
-                    // Show Employee specific content... (Simplified for this version)
-                    navTo('tab-history'); // Default for Employee
+                    document.getElementById('admin-links').classList.add('hidden'); 
+                    navTo('tab-history'); 
                 } else {
                     document.getElementById('view-dashboard').classList.remove('hidden');
                     document.getElementById('userDisplay').innerText = currentUser.name;
@@ -350,18 +316,38 @@
         function renderDepts() { const tb=document.getElementById('deptTableBody'); tb.innerHTML=''; db.depts.forEach(d=>tb.innerHTML+=`<tr class="border-b"><td class="p-3 font-bold">${d.entity}</td><td class="p-3">${d.name}<br><small class="text-gray-400">${d.address||''}</small></td><td class="p-3 text-right"><button onclick="delDept(${d.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`); }
         async function delDept(id) { if(confirm('Delete?')) { await callAPI('DEL_DEPT', {id}); db.depts=db.depts.filter(d=>d.id!=id); renderDepts(); } }
 
+        document.getElementById('desgForm').onsubmit=async(e)=>{e.preventDefault();const p={id:Date.now(),title:document.getElementById('newDesgTitle').value};await callAPI('ADD_DESG',p);db.desgs.push(p);renderDesgs();e.target.reset();};
+        function renderDesgs(){const tb=document.getElementById('desgTableBody');tb.innerHTML='';db.desgs.forEach(d=>tb.innerHTML+=`<tr class="border-b"><td class="p-3 font-bold">${d}</td><td class="p-3 text-right"><button onclick="alert('Deleting not available in this demo')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`);}
+
         function openEmpModal(emp=null) {
             document.getElementById('modal-emp').classList.remove('hidden');
             const deptSel=document.getElementById('empDeptSelect'); deptSel.innerHTML='<option value="">Select</option>'; db.depts.forEach(d=>deptSel.innerHTML+=`<option value="${d.id}">${d.entity} - ${d.name}</option>`);
-            const desgSel=document.getElementById('empDesg'); desgSel.innerHTML='<option value="">Select</option>'; db.desgs.forEach(d=>desgSel.innerHTML+=`<option>${d}</option>`);
+            const desgSel=document.getElementById('empDesgSelect'); desgSel.innerHTML='<option value="">Select</option>'; db.desgs.forEach(d=>desgSel.innerHTML+=`<option>${d}</option>`);
             document.getElementById('codeToggle').checked=false; toggleCodeInput();
-            if(emp){ document.getElementById('empModalTitle').innerText='Edit'; document.getElementById('empId').value=emp.id; document.getElementById('empCode').value=emp.code; document.getElementById('codeToggle').checked=true; toggleCodeInput(); document.getElementById('empName').value=emp.personal.name; document.getElementById('empDeptSelect').value=emp.deptId; document.getElementById('empDesg').value=emp.personal.desg; document.getElementById('empDOJ').value=emp.personal.doj.split('T')[0]; document.getElementById('empEmail').value=emp.personal.email||''; document.getElementById('empPass').value=emp.personal.password||''; document.getElementById('empBank').value=emp.bank.name; document.getElementById('empAC').value=emp.bank.ac; document.getElementById('empIFSC').value=emp.bank.ifsc; document.getElementById('salBasic').value=emp.salary.basic; document.getElementById('salDA').value=emp.salary.da; document.getElementById('salPF').value=emp.salary.epf; }
+            if(emp){ 
+                document.getElementById('empModalTitle').innerText='Edit'; 
+                document.getElementById('empId').value=emp.id; 
+                document.getElementById('empCode').value=emp.code; 
+                document.getElementById('codeToggle').checked=true; toggleCodeInput(); 
+                document.getElementById('empName').value=emp.personal.name; 
+                document.getElementById('empDeptSelect').value=emp.deptId; 
+                document.getElementById('empDesgSelect').value=emp.personal.desg; 
+                document.getElementById('empDOJ').value=emp.personal.doj.split('T')[0]; 
+                document.getElementById('empEmail').value=emp.personal.email||''; 
+                document.getElementById('empPass').value=emp.personal.password||''; 
+                document.getElementById('empBank').value=emp.bank.name; 
+                document.getElementById('empAC').value=emp.bank.ac; 
+                document.getElementById('empIFSC').value=emp.bank.ifsc; 
+                document.getElementById('salBasic').value=emp.salary.basic; 
+                document.getElementById('salDA').value=emp.salary.da; 
+                document.getElementById('salPF').value=emp.salary.epf; 
+            }
             else { document.getElementById('empForm').reset(); document.getElementById('empModalTitle').innerText='Add'; document.getElementById('empId').value=''; }
         }
         document.getElementById('empForm').onsubmit=async(e)=>{
             e.preventDefault(); const id=document.getElementById('empId').value;
             let code=document.getElementById('empCode').value; if(!document.getElementById('codeToggle').checked) code='EMP'+Math.floor(1000+Math.random()*9000);
-            const emp={ id:id?id:Date.now(), deptId:document.getElementById('empDeptSelect').value, code:code, personal:{ name:document.getElementById('empName').value, desg:document.getElementById('empDesg').value, doj:document.getElementById('empDOJ').value, status:document.getElementById('empStatus').value, email:document.getElementById('empEmail').value, password:document.getElementById('empPass').value, aadhaar:document.getElementById('empAadhaar').value, pan:document.getElementById('empPAN').value, uan:document.getElementById('empUAN').value }, bank:{ name:document.getElementById('empBank').value, ac:document.getElementById('empAC').value, ifsc:document.getElementById('empIFSC').value, esi:document.getElementById('empESI').value }, salary:{ basic:document.getElementById('salBasic').value, da:document.getElementById('salDA').value, ta:document.getElementById('salTA').value, hra:document.getElementById('salHRA').value, other:document.getElementById('salOther').value, epf:document.getElementById('salPF').value, esi_fixed:document.getElementById('salESIFix').value } };
+            const emp={ id:id?id:Date.now(), deptId:document.getElementById('empDeptSelect').value, code:code, personal:{ name:document.getElementById('empName').value, desg:document.getElementById('empDesgSelect').value, doj:document.getElementById('empDOJ').value, status:document.getElementById('empStatus').value, email:document.getElementById('empEmail').value, password:document.getElementById('empPass').value, aadhaar:document.getElementById('empAadhaar').value, pan:document.getElementById('empPAN').value, uan:document.getElementById('empUAN').value }, bank:{ name:document.getElementById('empBank').value, ac:document.getElementById('empAC').value, ifsc:document.getElementById('empIFSC').value, esi:document.getElementById('empESI').value }, salary:{ basic:document.getElementById('salBasic').value, da:document.getElementById('salDA').value, ta:document.getElementById('salTA').value, hra:document.getElementById('salHRA').value, other:document.getElementById('salOther').value, epf:document.getElementById('salPF').value, esi_fixed:document.getElementById('salESIFix').value } };
             await callAPI('ADD_EMP', emp); if(id){const i=db.emps.findIndex(x=>x.id==id); if(i!==-1)db.emps[i]=emp;}else db.emps.push(emp); document.getElementById('modal-emp').classList.add('hidden'); renderEmps();
         };
         function renderEmps() { const tb=document.getElementById('empTableBody'); tb.innerHTML=''; db.emps.forEach(e=>{ const d=db.depts.find(x=>x.id==e.deptId)||{name:'-'}; tb.innerHTML+=`<tr class="border-b hover:bg-gray-50"><td class="p-4 text-primary font-bold font-mono">${e.code}</td><td class="p-4 font-bold">${e.personal.name}<br><small class="text-gray-400">${e.personal.desg}</small></td><td class="p-4">${d.name}</td><td class="p-4 text-right"><button onclick='openEmpModal(${JSON.stringify(e)})' class="text-blue-500 mr-3"><i class="fa-solid fa-pen"></i></button><button onclick="delEmp(${e.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`; }); }
@@ -372,6 +358,33 @@
         async function delUser(e){if(confirm('Delete?')){await callAPI('DEL_SYS_USER',{email:e});loadUsers();}}
         document.getElementById('userForm').onsubmit=async(e)=>{e.preventDefault();await callAPI('SAVE_SYS_USER',{name:document.getElementById('newUserName').value,email:document.getElementById('newUserEmail').value,password:document.getElementById('newUserPass').value,role:document.getElementById('newUserRole').value,permissions:{view_dashboard:true,manage_dept:document.getElementById('perm_dept').checked,manage_emp:document.getElementById('perm_emp').checked,generate_payslip:document.getElementById('perm_pay').checked,view_history:document.getElementById('perm_hist').checked}});alert('Saved');document.getElementById('userForm').reset();loadUsers();};
 
+        // CRM & TOOLS LOGIC
+        async function loadCRM() {
+            const res = await callAPI('GET_CRM_DATA');
+            const nList = document.getElementById('crmNotesList'); nList.innerHTML = '';
+            const lList = document.getElementById('crmLinksList'); lList.innerHTML = '';
+            if(res.status === 'success') {
+                res.data.forEach(item => {
+                    // Item: [Type, Title, Content, Owner, Date]
+                    if(item[0] === 'NOTE') {
+                        nList.innerHTML += `<div class="bg-yellow-50 p-2 rounded border border-yellow-200 text-sm mb-2"><p>${item[2]}</p><div class="flex justify-between mt-1 text-xs text-gray-400"><span>${item[3]}</span><button onclick="delCRM('${item[0]}','${item[1]}','${item[2]}')" class="text-red-400 hover:text-red-600">x</button></div></div>`;
+                    } else if(item[0] === 'LINK') {
+                        lList.innerHTML += `<div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded"><a href="${item[2]}" target="_blank" class="text-blue-600 font-bold hover:underline"><i class="fa-solid fa-link mr-2"></i>${item[1]}</a><button onclick="delCRM('${item[0]}','${item[1]}','${item[2]}')" class="text-red-400 text-xs">x</button></div>`;
+                    }
+                });
+            }
+        }
+        async function addCRMItem(type) {
+            let title='', content='';
+            if(type==='NOTE') { content = document.getElementById('newNoteContent').value; title='Note'; }
+            else { title = document.getElementById('newLinkTitle').value; content = document.getElementById('newLinkUrl').value; }
+            if(!content) return alert("Content empty");
+            await callAPI('SAVE_CRM_ITEM', { type: type, title: title, content: content, owner: currentUser.name });
+            if(type==='NOTE') document.getElementById('newNoteContent').value=''; else { document.getElementById('newLinkTitle').value=''; document.getElementById('newLinkUrl').value=''; }
+            loadCRM();
+        }
+        async function delCRM(type, title, content) { if(confirm('Delete?')) { await callAPI('DEL_CRM_ITEM', {type, title, content}); loadCRM(); } }
+
         // Payslip
         function fillEmpSelect() { const s=document.getElementById('psEmpSelect'); s.innerHTML='<option>-- Select --</option>'; db.emps.forEach(e=>s.innerHTML+=`<option value="${e.id}">${e.personal.name} (${e.code})</option>`); }
         function autoFetchEmp() { const id=document.getElementById('psEmpSelect').value; const e=db.emps.find(x=>x.id==id); if(e){ const d=db.depts.find(x=>x.id==e.deptId); document.getElementById('psDisplayInfo').value=`${e.personal.name} | ${d.entity}`; document.getElementById('fixBasic').value=e.salary.basic; document.getElementById('fixDA').value=e.salary.da; document.getElementById('fixTA').value=e.salary.ta; document.getElementById('fixHRA').value=e.salary.hra; document.getElementById('fixOther').value=e.salary.other; document.getElementById('fixEPF').value=e.salary.epf; document.getElementById('fixESI').value=e.salary.esi_fixed; } }
@@ -380,13 +393,11 @@
             const id = document.getElementById('psEmpSelect').value; if(!id||id.includes('Select')) return alert('Select Employee');
             const emp=db.emps.find(e=>e.id==id), dept=db.depts.find(d=>d.id==emp.deptId), m=document.getElementById('psMonth').value, y=document.getElementById('psYear').value;
             
-            // Calc
             const basic=Number(document.getElementById('fixBasic').value), da=Number(document.getElementById('fixDA').value), hra=Number(document.getElementById('fixHRA').value), other=Number(document.getElementById('fixOther').value);
             const gross=basic+da+hra+other;
             const epf=Number(document.getElementById('fixEPF').value), food=Number(document.getElementById('psDedFood').value), adv=Number(document.getElementById('psDedAdv').value);
             const netPay=gross-(epf+food+adv);
 
-            // PDF
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
             doc.setFont("times", "bold"); doc.setFontSize(22); doc.text(dept.entity, 105, 15, null, null, "center");
             doc.setFontSize(10); doc.setFont("times", "normal"); doc.text(dept.address||"Head Office", 105, 20, null, null, "center");
@@ -399,12 +410,10 @@
 
             if(mode === 'download') doc.save(`Payslip_${emp.personal.name}.pdf`);
             else if(mode === 'whatsapp') {
-                // WhatsApp Logic
                 const msg = `Dear ${emp.personal.name}, your payslip for ${m} is generated. Net Pay: Rs.${netPay}. Please collect the PDF from HR.`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
             }
             else if(mode === 'email') {
-                // Email Logic
                 if(!emp.personal.email) return alert("Employee email not found!");
                 const pdfBase64 = doc.output('datauristring').split(',')[1];
                 await callAPI('SEND_EMAIL_PAYSLIP', { toEmail: emp.personal.email, month: m, pdfBase64: pdfBase64, fileName: `Payslip_${m}.pdf` });
